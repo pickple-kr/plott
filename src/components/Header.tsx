@@ -20,8 +20,8 @@ export async function Header() {
   }
 
   return (
-    <header className="border-b border-gray-200 bg-white px-4">
-      <div className="max-w-5xl mx-auto">
+    <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8">
         <HeaderNav
           userEmail={user?.email ?? null}
           isAdmin={isAdmin}
