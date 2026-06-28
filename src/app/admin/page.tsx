@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { approveApplication, rejectApplication } from '@/app/actions/seller'
 
@@ -51,14 +52,33 @@ export default async function AdminPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
-      <div className="flex items-baseline gap-3 mb-8">
+      <div className="flex items-baseline gap-3 mb-6">
         <h1 className="text-2xl font-semibold">관리자</h1>
-        <span className="text-sm text-gray-400">판매자 신청 목록</span>
         {pendingCount > 0 && (
           <span className="ml-auto text-sm font-medium text-yellow-600">
             심사 대기 {pendingCount}건
           </span>
         )}
+      </div>
+
+      {/* 관리자 메뉴 */}
+      <div className="grid grid-cols-2 gap-3 mb-10">
+        <Link
+          href="/admin/banners"
+          className="border border-gray-200 rounded-xl p-4 hover:border-charcoal transition-colors"
+        >
+          <p className="font-semibold text-sm text-charcoal">배너 관리</p>
+          <p className="text-xs text-gray-400 mt-1">메인 슬라이드 배너 등록·수정·삭제</p>
+        </Link>
+        <div className="border border-gray-200 rounded-xl p-4 opacity-40 cursor-default">
+          <p className="font-semibold text-sm text-charcoal">상품 관리</p>
+          <p className="text-xs text-gray-400 mt-1">준비 중</p>
+        </div>
+      </div>
+
+      <div className="flex items-baseline gap-3 mb-4">
+        <h2 className="text-lg font-semibold">판매자 신청 목록</h2>
+        <span className="text-sm text-gray-400">전체 {applications.length}건</span>
       </div>
 
       {applications.length === 0 && (

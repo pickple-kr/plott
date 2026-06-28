@@ -70,18 +70,26 @@ const CARD_PASTELS = ['#FFF8E6', '#EEF4E8', '#F3EEFF', '#FFF0EC', '#E8F4F2']
 export default async function Home() {
   const supabase = await createClient()
 
-  const { data: plants } = await supabase
-    .from('plants')
-    .select('id, name, price, category, image_url, purchase_url, description')
-    .order('created_at', { ascending: false })
+  /* 식물 목록 + 활성 배너를 동시에 가져오기 */
+  const [{ data: plants }, { data: banners }] = await Promise.all([
+    supabase
+      .from('plants')
+      .select('id, name, price, category, image_url, purchase_url, description')
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('banners')
+      .select('id, image_url, link_url, order_index')
+      .eq('active', true)
+      .order('order_index', { ascending: true }),
+  ])
 
   return (
     <div>
 
       {/* ═══════════════════════════════════════════════
-          히어로 슬라이드 배너
+          히어로 슬라이드 배너 (DB에서 불러온 실제 배너)
       ═══════════════════════════════════════════════ */}
-      <HeroBanner />
+      <HeroBanner banners={banners ?? []} />
 
       {/* ═══════════════════════════════════════════════
           가이드 바 (반려동물/햇빛/물주기/플로팅)

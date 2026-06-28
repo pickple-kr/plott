@@ -2,40 +2,21 @@
 
 import { useState, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 
-/* ── 테스트용 임시 슬라이드 ──────────────────────────────
-   실제 이미지는 나중에 관리자 페이지에서 업로드해 교체할 예정.
-   지금은 배경색으로 슬라이드 동작만 확인.
-──────────────────────────────────────────────────────── */
-const SLIDES = [
-  {
-    id: 0,
-    bg: 'linear-gradient(135deg, #EEF4E4 0%, #D4EAC0 100%)',
-    label: 'SLIDE 01',
-  },
-  {
-    id: 1,
-    bg: 'linear-gradient(135deg, #EDE9E1 0%, #D8D0C0 100%)',
-    label: 'SLIDE 02',
-  },
-  {
-    id: 2,
-    bg: 'linear-gradient(135deg, #E4ECF4 0%, #C8D8EC 100%)',
-    label: 'SLIDE 03',
-  },
-]
+type Banner = {
+  id: string
+  image_url: string
+  link_url: string | null
+  order_index: number
+}
 
-export function HeroBanner() {
+export function HeroBanner({ banners }: { banners: Banner[] }) {
+  const count = banners.length
   const [current, setCurrent] = useState(0)
 
-  const prev = useCallback(
-    () => setCurrent(c => (c - 1 + SLIDES.length) % SLIDES.length),
-    []
-  )
-  const next = useCallback(
-    () => setCurrent(c => (c + 1) % SLIDES.length),
-    []
-  )
+  const prev = useCallback(() => setCurrent(c => (c - 1 + count) % count), [count])
+  const next = useCallback(() => setCurrent(c => (c + 1) % count), [count])
 
   return (
     <section
@@ -43,49 +24,57 @@ export function HeroBanner() {
       style={{ minHeight: '520px' }}
     >
 
-      {/* ══ 슬라이드 배경 트랙 ══════════════════════════
-          트랙 전체 너비 = 슬라이드 수 × 100%.
-          translateX 로 현재 슬라이드만 보여줌.
-      ═══════════════════════════════════════════════ */}
-      <div
-        className="absolute inset-0 flex transition-transform duration-500 ease-in-out"
-        style={{
-          width: `${SLIDES.length * 100}%`,
-          transform: `translateX(-${(current * 100) / SLIDES.length}%)`,
-        }}
-      >
-        {SLIDES.map(slide => (
-          <div
-            key={slide.id}
-            className="relative h-full flex-shrink-0"
-            style={{
-              width: `${100 / SLIDES.length}%`,
-              background: slide.bg,
-            }}
-          >
-            {/* 임시 슬라이드 번호 — 실제 이미지 넣으면 안 보임 */}
-            <div className="absolute inset-0 flex items-center justify-end pr-[12%] pointer-events-none select-none">
-              <span
-                className="font-display font-black opacity-[0.07]"
-                style={{ fontSize: 'clamp(80px, 12vw, 160px)' }}
-              >
-                {slide.label}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* ══ 슬라이드 배경 트랙 ══════════════════════════════ */}
+      {count > 0 && (
+        <div
+          className="absolute inset-0 flex transition-transform duration-500 ease-in-out"
+          style={{
+            width: `${count * 100}%`,
+            transform: `translateX(-${(current * 100) / count}%)`,
+          }}
+        >
+          {banners.map((banner, i) => (
+            <div
+              key={banner.id}
+              className="relative h-full flex-shrink-0"
+              style={{ width: `${100 / count}%` }}
+            >
+              {/* 이미지 */}
+              <Image
+                src={banner.image_url}
+                alt={`배너 ${i + 1}`}
+                fill
+                className="object-cover"
+                priority={i === 0}
+                sizes="100vw"
+              />
 
-      {/* ══ 텍스트 오버레이 ══════════════════════════════
-          슬라이드 위에 고정. 실제 배너 이미지가 글씨
-          가독성을 고려해 제작되므로 글씨는 검정 그대로.
-      ═══════════════════════════════════════════════ */}
-      <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
+              {/* 링크 URL이 있는 배너는 클릭 가능 */}
+              {banner.link_url && (
+                <a
+                  href={banner.link_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute inset-0 z-10"
+                  aria-label="배너 링크"
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 배너가 하나도 없을 때 기본 배경 */}
+      {count === 0 && (
+        <div className="absolute inset-0 bg-gradient-to-br from-[#EEF4E4] to-[#D4EAC0]" />
+      )}
+
+      {/* ══ 텍스트 오버레이 (항상 고정) ════════════════════ */}
+      <div className="relative z-20 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
         <div
           className="flex flex-col justify-center py-16 sm:py-20"
           style={{ minHeight: '520px', maxWidth: '540px' }}
         >
-
           {/* 메인 타이틀 */}
           <h1
             className="font-black leading-[0.88] tracking-tight text-charcoal uppercase"
@@ -93,8 +82,6 @@ export function HeroBanner() {
           >
             PLANTS<br />
             MAKE<br />
-
-            {/* LIFE FUN! — 형광 연두 삐뚤 밑줄 */}
             <span className="relative inline-block">
               LIFE FUN!
               <svg
@@ -158,9 +145,7 @@ export function HeroBanner() {
         </div>
       </div>
 
-      {/* ══ 손글씨 장식 ═════════════════════════════════
-          z-20 으로 슬라이드·텍스트 위에 올라옴.
-      ═══════════════════════════════════════════════ */}
+      {/* ══ 손글씨 장식 ══════════════════════════════════════ */}
 
       {/* 핑크 손글씨 곡선 화살표 */}
       <div
@@ -183,8 +168,7 @@ export function HeroBanner() {
         <div style={{ transform: 'rotate(-13deg)' }}>
           <svg width="144" height="144" viewBox="0 0 144 144">
             <circle cx="72" cy="72" r="66"
-                    fill="none" stroke="#D4F034" strokeWidth="13"
-                    strokeDasharray="9 4"/>
+                    fill="none" stroke="#D4F034" strokeWidth="13" strokeDasharray="9 4"/>
             <circle cx="72" cy="72" r="57" fill="#D4F034"/>
             <defs>
               <path id="badge-ring"
@@ -223,62 +207,62 @@ export function HeroBanner() {
              stroke="#0A0A0A" strokeWidth="1.6" strokeLinecap="round">
           <line x1="10" y1="1"  x2="10" y2="19"/>
           <line x1="1"  y1="10" x2="19" y2="10"/>
-          <line x1="3.5" y1="3.5"   x2="16.5" y2="16.5"/>
+          <line x1="3.5"  y1="3.5"  x2="16.5" y2="16.5"/>
           <line x1="16.5" y1="3.5"  x2="3.5"  y2="16.5"/>
         </svg>
       </div>
 
-      {/* ══ 슬라이드 컨트롤 (우측 하단) ════════════════ */}
-      <div className="absolute bottom-6 right-6 sm:right-8 z-30 flex items-center gap-4">
+      {/* ══ 슬라이드 컨트롤 (배너 2개 이상일 때만 표시) ══ */}
+      {count > 1 && (
+        <div className="absolute bottom-6 right-6 sm:right-8 z-30 flex items-center gap-4">
 
-        {/* 점(●○○) 표시 */}
-        <div className="flex items-center gap-2">
-          {SLIDES.map((_, i) => (
+          {/* 점(●○○) 표시 */}
+          <div className="flex items-center gap-2">
+            {banners.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrent(i)}
+                aria-label={`슬라이드 ${i + 1}`}
+                className="flex items-center justify-center"
+              >
+                <div
+                  className={`rounded-full transition-all duration-300 bg-white ${
+                    i === current ? 'w-5 h-2 opacity-100' : 'w-2 h-2 opacity-40'
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
+
+          {/* ← → 화살표 버튼 */}
+          <div className="flex items-center gap-1.5">
             <button
-              key={i}
-              onClick={() => setCurrent(i)}
-              aria-label={`슬라이드 ${i + 1}`}
-              className="flex items-center justify-center"
+              onClick={prev}
+              className="w-9 h-9 border border-white/30 bg-black/20 backdrop-blur-sm
+                         flex items-center justify-center text-white
+                         hover:bg-black/40 transition-colors"
+              aria-label="이전 슬라이드"
             >
-              <div
-                className={`rounded-full transition-all duration-300 bg-charcoal ${
-                  i === current ? 'w-5 h-2' : 'w-2 h-2 opacity-25'
-                }`}
-              />
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"
+                   stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M8 2L4 6.5 8 11"/>
+              </svg>
             </button>
-          ))}
+            <button
+              onClick={next}
+              className="w-9 h-9 border border-white/30 bg-black/20 backdrop-blur-sm
+                         flex items-center justify-center text-white
+                         hover:bg-black/40 transition-colors"
+              aria-label="다음 슬라이드"
+            >
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"
+                   stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 2l4 4.5-4 4.5"/>
+              </svg>
+            </button>
+          </div>
         </div>
-
-        {/* ← → 화살표 버튼 */}
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={prev}
-            className="w-9 h-9 border border-charcoal/20 bg-white/60 backdrop-blur-sm
-                       flex items-center justify-center
-                       text-charcoal hover:bg-charcoal hover:text-white hover:border-charcoal
-                       transition-colors"
-            aria-label="이전 슬라이드"
-          >
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"
-                 stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M8 2L4 6.5 8 11"/>
-            </svg>
-          </button>
-          <button
-            onClick={next}
-            className="w-9 h-9 border border-charcoal/20 bg-white/60 backdrop-blur-sm
-                       flex items-center justify-center
-                       text-charcoal hover:bg-charcoal hover:text-white hover:border-charcoal
-                       transition-colors"
-            aria-label="다음 슬라이드"
-          >
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"
-                 stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 2l4 4.5-4 4.5"/>
-            </svg>
-          </button>
-        </div>
-      </div>
+      )}
 
     </section>
   )
