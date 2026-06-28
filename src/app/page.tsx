@@ -3,6 +3,8 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { HeroBanner } from '@/components/HeroBanner'
 import { CollectionSection } from '@/components/CollectionSection'
+import { WishlistButton } from '@/components/WishlistButton'
+import { toggleWishlist } from '@/app/actions/wishlist'
 
 /* ── 가이드 바 데이터 ─────────────────────────────── */
 const GUIDES = [
@@ -70,6 +72,7 @@ const CARD_PASTELS = ['#FFF8E6', '#EEF4E8', '#F3EEFF', '#FFF0EC', '#E8F4F2']
 
 export default async function Home() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   /* 식물 목록 + 배너 + 큐레이션을 동시에 가져오기 */
   const [{ data: plants }, { data: banners }, { data: rawCollections }] = await Promise.all([
@@ -94,6 +97,13 @@ export default async function Home() {
       .eq('active', true)
       .order('order_index', { ascending: true }),
   ])
+
+  /* 찜 목록 (로그인한 경우만) */
+  const { data: wishlistData } = user
+    ? await supabase.from('wishlists').select('plant_id').eq('user_id', user.id)
+    : { data: [] as { plant_id: string }[] }
+
+  const wishlistSet = new Set((wishlistData ?? []).map((w) => w.plant_id))
 
   return (
     <div>
@@ -180,58 +190,59 @@ export default async function Home() {
         {/* 가로 스크롤 카드 */}
         {plants && plants.length > 0 && (
           <div className="overflow-x-auto scrollbar-hide">
-            <div className="flex gap-3 sm:gap-4 px-6 sm:px-8">
+            <div className="flex gap-3 sm:gap-4 px-6 sm:px-8 max-w-7xl mx-auto">
               {plants.map((plant, i) => (
                 <div
                   key={plant.id}
-                  className="flex-shrink-0 w-48 sm:w-52 rounded-2xl overflow-hidden group"
+                  className="flex-shrink-0 w-48 sm:w-52 rounded-2xl overflow-hidden group relative"
                   style={{ backgroundColor: CARD_PASTELS[i % CARD_PASTELS.length] }}
                 >
-                  <div className="relative aspect-square">
-                    {i === 0 && (
-                      <span
-                        className="absolute top-3 left-3 z-10 text-white text-[10px] font-black px-2.5 py-1 tracking-wider"
-                        style={{ backgroundColor: '#FF4FA3', transform: 'rotate(-2deg)' }}
-                      >
-                        BEST
-                      </span>
-                    )}
-                    {(i === 1 || i === 2) && (
-                      <span
-                        className="absolute top-3 left-3 z-10 text-charcoal text-[10px] font-black px-2.5 py-1 tracking-wider"
-                        style={{ backgroundColor: '#D4F034', transform: 'rotate(2deg)' }}
-                      >
-                        NEW
-                      </span>
-                    )}
-                    <button
-                      className="absolute top-3 right-3 z-10 text-white/50 hover:text-red-400 transition-colors"
-                      aria-label="좋아요"
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                           stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                      </svg>
-                    </button>
-                    {plant.image_url ? (
-                      <Image
-                        src={plant.image_url} alt={plant.name} fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                        sizes="208px"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" className="text-black/10">
-                          <rect x="4" y="8" width="32" height="24" rx="3" stroke="currentColor" strokeWidth="1"/>
-                          <circle cx="13" cy="16" r="3" stroke="currentColor" strokeWidth="1"/>
-                          <path d="M4 24l8-7 6 6 6-4 12 9" stroke="currentColor" strokeWidth="1"
-                                strokeLinecap="round" strokeLinejoin="round"/>
-                          <circle cx="30" cy="10" r="5" fill="white" stroke="currentColor" strokeWidth="1"/>
-                          <path d="M30 7.5v5M27.5 10h5" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
-                        </svg>
-                      </div>
-                    )}
-                  </div>
+                  {/* 이미지 → 상세 페이지 링크 */}
+                  <Link href={`/plants/${plant.id}`} className="block">
+                    <div className="relative aspect-square">
+                      {i === 0 && (
+                        <span
+                          className="absolute top-3 left-3 z-10 text-white text-[10px] font-black px-2.5 py-1 tracking-wider"
+                          style={{ backgroundColor: '#FF4FA3', transform: 'rotate(-2deg)' }}
+                        >
+                          BEST
+                        </span>
+                      )}
+                      {(i === 1 || i === 2) && (
+                        <span
+                          className="absolute top-3 left-3 z-10 text-charcoal text-[10px] font-black px-2.5 py-1 tracking-wider"
+                          style={{ backgroundColor: '#D4F034', transform: 'rotate(2deg)' }}
+                        >
+                          NEW
+                        </span>
+                      )}
+                      {plant.image_url ? (
+                        <Image
+                          src={plant.image_url} alt={plant.name} fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                          sizes="208px"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" className="text-black/10">
+                            <rect x="4" y="8" width="32" height="24" rx="3" stroke="currentColor" strokeWidth="1"/>
+                            <circle cx="13" cy="16" r="3" stroke="currentColor" strokeWidth="1"/>
+                            <path d="M4 24l8-7 6 6 6-4 12 9" stroke="currentColor" strokeWidth="1"
+                                  strokeLinecap="round" strokeLinejoin="round"/>
+                            <circle cx="30" cy="10" r="5" fill="white" stroke="currentColor" strokeWidth="1"/>
+                            <path d="M30 7.5v5M27.5 10h5" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                  {/* 하트(찜) 버튼 — Link 바깥에 absolute 배치 */}
+                  <WishlistButton
+                    plantId={plant.id}
+                    initialWishlisted={wishlistSet.has(plant.id)}
+                    onToggle={toggleWishlist}
+                    className="absolute top-3 right-3 z-20 text-white/50"
+                  />
                   <div className="px-4 py-4">
                     <h3 className="font-semibold text-sm text-charcoal leading-snug mb-1">
                       {plant.name}
