@@ -70,10 +70,13 @@ export default async function AdminPage() {
           <p className="font-semibold text-sm text-charcoal">배너 관리</p>
           <p className="text-xs text-gray-400 mt-1">메인 슬라이드 배너 등록·수정·삭제</p>
         </Link>
-        <div className="border border-gray-200 rounded-xl p-4 opacity-40 cursor-default">
-          <p className="font-semibold text-sm text-charcoal">상품 관리</p>
-          <p className="text-xs text-gray-400 mt-1">준비 중</p>
-        </div>
+        <Link
+          href="/admin/collections"
+          className="border border-gray-200 rounded-xl p-4 hover:border-charcoal transition-colors"
+        >
+          <p className="font-semibold text-sm text-charcoal">큐레이션 관리</p>
+          <p className="text-xs text-gray-400 mt-1">주제별 식물 묶음 생성·편집</p>
+        </Link>
       </div>
 
       <div className="flex items-baseline gap-3 mb-4">

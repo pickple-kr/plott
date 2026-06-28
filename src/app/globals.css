@@ -18,6 +18,7 @@
   --font-sans:    'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
   --font-serif:   var(--font-noto-serif-kr), 'Nanum Myeongjo', Georgia, serif;
   --font-display: var(--font-playfair), Georgia, serif;
+  --font-logo:    var(--font-outfit), system-ui, sans-serif;
 }
 
 body {
@@ -25,4 +26,13 @@ body {
   color: #0A0A0A;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* 가로 스크롤 영역에서 스크롤바 숨기기 */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
