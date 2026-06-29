@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
-
-const CATEGORIES = ['관엽식물', '다육·선인장', '허브', '꽃·화분']
+import { PLANT_CATEGORIES } from '@/lib/constants'
 
 type Plant = {
   id: string
@@ -175,7 +174,7 @@ export function PlantForm({
           className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-black bg-white"
         >
           <option value="" disabled>선택하세요</option>
-          {CATEGORIES.map((cat) => (
+          {PLANT_CATEGORIES.map((cat) => (
             <option key={cat} value={cat}>{cat}</option>
           ))}
         </select>

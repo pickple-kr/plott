@@ -26,8 +26,31 @@ const notoSerifKR = Noto_Serif_KR({
 })
 
 export const metadata: Metadata = {
-  title: 'PLOTT',
-  description: '식물 마켓플레이스 & 커뮤니티',
+  title: 'PLOTT - 식물을 콘텐츠처럼, 취향을 큐레이션하다',
+  description: '식물 마켓플레이스이자 커뮤니티. 취향에 맞는 식물을 큐레이션해요.',
+  metadataBase: new URL('https://plott.ai.kr'),
+  openGraph: {
+    title: 'PLOTT - 식물을 콘텐츠처럼, 취향을 큐레이션하다',
+    description: '식물 마켓플레이스이자 커뮤니티. 취향에 맞는 식물을 큐레이션해요.',
+    url: 'https://plott.ai.kr',
+    siteName: 'PLOTT',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'PLOTT - 식물 마켓플레이스 & 커뮤니티',
+      },
+    ],
+    locale: 'ko_KR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'PLOTT - 식물을 콘텐츠처럼, 취향을 큐레이션하다',
+    description: '식물 마켓플레이스이자 커뮤니티. 취향에 맞는 식물을 큐레이션해요.',
+    images: ['/og-image.jpg'],
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

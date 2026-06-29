@@ -2,8 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { PlantCard } from '@/components/PlantCard'
 import { toggleWishlist } from '@/app/actions/wishlist'
-
-const CATEGORIES = ['관엽식물', '다육·선인장', '허브', '꽃·화분']
+import { PLANT_CATEGORIES } from '@/lib/constants'
 
 export default async function PlantsPage({
   searchParams,
@@ -19,7 +18,7 @@ export default async function PlantsPage({
     .select('id, name, price, category, image_url, purchase_url, description, created_at')
     .order('created_at', { ascending: false })
 
-  if (category && CATEGORIES.includes(category)) {
+  if (category && PLANT_CATEGORIES.includes(category)) {
     query = query.eq('category', category)
   }
 
@@ -67,7 +66,7 @@ export default async function PlantsPage({
         >
           전체
         </Link>
-        {CATEGORIES.map((cat) => (
+        {PLANT_CATEGORIES.map((cat) => (
           <Link
             key={cat}
             href={`/plants?category=${encodeURIComponent(cat)}`}

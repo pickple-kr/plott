@@ -173,7 +173,7 @@ export function HeaderNav({
         </div>
 
         {/* 햄버거 (모바일) */}
-        <div className="md:hidden flex justify-end">
+        <div className="md:hidden flex justify-end col-start-3">
           <button
             onClick={() => setMobileMenu(!mobileMenu)}
             className="p-2 -mr-2 text-charcoal"

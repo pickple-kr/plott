@@ -4,70 +4,8 @@ import { HeroBanner } from '@/components/HeroBanner'
 import { CollectionSection } from '@/components/CollectionSection'
 import { PlantCard } from '@/components/PlantCard'
 import { toggleWishlist } from '@/app/actions/wishlist'
+import { PLANT_CATEGORIES } from '@/lib/constants'
 
-/* ── 가이드 바 데이터 ─────────────────────────────── */
-const GUIDES = [
-  {
-    title: '반려동물 안전 정보',
-    sub:   '펫 프렌들리 식물 가이드',
-    icon: (
-      <svg width="34" height="34" viewBox="0 0 34 34" fill="none"
-           stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        {/* 발바닥 */}
-        <ellipse cx="17" cy="22" rx="7.5" ry="8"/>
-        <ellipse cx="8.5"  cy="13" rx="3.2" ry="4"/>
-        <ellipse cx="17"   cy="10" rx="3.2" ry="4"/>
-        <ellipse cx="25.5" cy="13" rx="3.2" ry="4"/>
-      </svg>
-    ),
-  },
-  {
-    title: '햇빛 가이드',
-    sub:   '식물의 빛 요구량 안내',
-    icon: (
-      <svg width="34" height="34" viewBox="0 0 34 34" fill="none"
-           stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-        <circle cx="17" cy="17" r="5.5"/>
-        <line x1="17" y1="3"  x2="17" y2="7.5"/>
-        <line x1="17" y1="26.5" x2="17" y2="31"/>
-        <line x1="3"  y1="17" x2="7.5" y2="17"/>
-        <line x1="26.5" y1="17" x2="31" y2="17"/>
-        <line x1="7.5"  y1="7.5"  x2="10.8" y2="10.8"/>
-        <line x1="23.2" y1="23.2" x2="26.5" y2="26.5"/>
-        <line x1="26.5" y1="7.5"  x2="23.2" y2="10.8"/>
-        <line x1="10.8" y1="23.2" x2="7.5"  y2="26.5"/>
-      </svg>
-    ),
-  },
-  {
-    title: '물주기 가이드',
-    sub:   '초보자도 쉽게 키워요',
-    icon: (
-      <svg width="34" height="34" viewBox="0 0 34 34" fill="none"
-           stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 4 Q27 16 27 22 A10 10 0 1 1 7 22 Q7 16 17 4Z"/>
-      </svg>
-    ),
-  },
-  {
-    title: '플로팅 가이드',
-    sub:   'PLOTT가 제안하는 식물 생활',
-    icon: (
-      <svg width="34" height="34" viewBox="0 0 34 34" fill="none"
-           stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        {/* 화분 */}
-        <path d="M10 20 L12 30 L22 30 L24 20Z"/>
-        <rect x="9" y="17" width="16" height="4" rx="1.5"/>
-        {/* 줄기·잎 */}
-        <line x1="17" y1="17" x2="17" y2="10"/>
-        <path d="M17 14 Q21 11 23 13"/>
-        <path d="M17 11.5 Q13 9 11 11"/>
-      </svg>
-    ),
-  },
-]
-
-const CARD_PASTELS = ['#FFF8E6', '#EEF4E8', '#F3EEFF', '#FFF0EC', '#E8F4F2']
 
 export default async function Home() {
   const supabase = await createClient()
@@ -120,21 +58,29 @@ export default async function Home() {
       <HeroBanner banners={banners ?? []} />
 
       {/* ═══════════════════════════════════════════════
-          가이드 바 (반려동물/햇빛/물주기/플로팅)
+          카테고리 바로가기
       ═══════════════════════════════════════════════ */}
       <section className="border-b border-gray-100 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-100">
-            {GUIDES.map(({ title, sub, icon }) => (
-              <div key={title}
-                   className="flex items-center gap-3 px-4 sm:px-6 py-5 cursor-pointer
-                              hover:bg-gray-50 transition-colors">
-                <div className="flex-shrink-0 text-gray-500">{icon}</div>
-                <div>
-                  <p className="text-sm font-semibold text-charcoal leading-tight">{title}</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5 leading-tight">{sub}</p>
-                </div>
-              </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-5">
+          <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide">
+            <Link
+              href="/plants"
+              className="flex-shrink-0 px-5 py-2.5 rounded-full border border-gray-200
+                         text-sm font-medium text-gray-500
+                         hover:bg-charcoal hover:text-white hover:border-charcoal transition-colors"
+            >
+              전체 식물
+            </Link>
+            {PLANT_CATEGORIES.map((cat) => (
+              <Link
+                key={cat}
+                href={`/plants?category=${encodeURIComponent(cat)}`}
+                className="flex-shrink-0 px-5 py-2.5 rounded-full border border-gray-200
+                           text-sm font-medium text-charcoal
+                           hover:bg-charcoal hover:text-white hover:border-charcoal transition-colors"
+              >
+                {cat}
+              </Link>
             ))}
           </div>
         </div>
