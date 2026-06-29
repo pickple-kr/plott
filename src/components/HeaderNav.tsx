@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { logout } from '@/app/actions/auth'
 
@@ -13,10 +13,25 @@ const NAV = [
 
 export function HeaderNav({
   userEmail,
+  isAdmin,
 }: {
   userEmail: string | null
+  isAdmin: boolean
 }) {
+  const [userMenu,   setUserMenu]   = useState(false)
   const [mobileMenu, setMobileMenu] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  /* 드롭다운 바깥 클릭 시 닫기 */
+  useEffect(() => {
+    function handleOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setUserMenu(false)
+      }
+    }
+    if (userMenu) document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [userMenu])
 
   return (
     <>
@@ -27,7 +42,6 @@ export function HeaderNav({
         <div>
           <Link href="/" className="font-logo font-black text-2xl tracking-[0.25em] text-charcoal select-none inline-flex items-center gap-1.5">
             PLOTT
-            {/* 목업 속 형광 ✱ 별표 */}
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none"
                  stroke="#D4F034" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
               <line x1="7.5" y1="1"   x2="7.5" y2="14"/>
@@ -63,17 +77,86 @@ export function HeaderNav({
           </button>
 
           {/* 유저 */}
-          <div className="relative">
-            <Link
-              href={userEmail ? '/my' : '/login'}
-              className="text-charcoal hover:text-gray-400 transition-colors"
-              aria-label={userEmail ? '마이페이지' : '로그인'}
-            >
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-            </Link>
+          <div className="relative" ref={menuRef}>
+            {userEmail ? (
+              <>
+                {/* 아이콘 버튼 → 드롭다운 열기 */}
+                <button
+                  onClick={() => setUserMenu(!userMenu)}
+                  className="text-charcoal hover:text-gray-400 transition-colors"
+                  aria-label="내 계정"
+                  aria-expanded={userMenu}
+                >
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                </button>
+
+                {/* 드롭다운 */}
+                {userMenu && (
+                  <div className="absolute right-0 top-full mt-3 bg-white border border-gray-100
+                                  rounded-2xl shadow-lg shadow-black/5 py-2 min-w-[160px] z-50">
+                    <Link
+                      href="/my"
+                      onClick={() => setUserMenu(false)}
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-charcoal
+                                 hover:bg-gray-50 transition-colors rounded-t-xl"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                           stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                      </svg>
+                      마이페이지
+                    </Link>
+
+                    {isAdmin && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setUserMenu(false)}
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-charcoal
+                                   hover:bg-gray-50 transition-colors"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                          <rect x="3" y="11" width="18" height="11" rx="2"/>
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        관리자
+                      </Link>
+                    )}
+
+                    <div className="border-t border-gray-100 mt-1 pt-1">
+                      <form action={logout}>
+                        <button
+                          type="submit"
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm
+                                     text-gray-400 hover:text-charcoal hover:bg-gray-50
+                                     transition-colors rounded-b-xl"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                               stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                          </svg>
+                          로그아웃
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              /* 비로그인: 아이콘 → 로그인 페이지 */
+              <Link href="/login" className="text-charcoal hover:text-gray-400 transition-colors" aria-label="로그인">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </Link>
+            )}
           </div>
 
           {/* 장바구니 */}
@@ -129,6 +212,12 @@ export function HeaderNav({
                 className="px-1 py-3 text-sm text-charcoal font-medium">
                 마이페이지
               </Link>
+              {isAdmin && (
+                <Link href="/admin" onClick={() => setMobileMenu(false)}
+                  className="px-1 py-3 text-sm text-charcoal font-medium">
+                  관리자
+                </Link>
+              )}
               <form action={logout}>
                 <button type="submit" onClick={() => setMobileMenu(false)}
                   className="px-1 py-3 text-sm text-gray-400 w-full text-left">
