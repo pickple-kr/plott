@@ -16,7 +16,8 @@ export default async function Home() {
     supabase
       .from('plants')
       .select('id, name, price, category, image_url, purchase_url, description')
-      .order('created_at', { ascending: false }),
+      .order('created_at', { ascending: false })
+      .limit(16),
     supabase
       .from('banners')
       .select('id, image_url, link_url, order_index')

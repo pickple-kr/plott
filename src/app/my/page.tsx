@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { PlantCard } from '@/components/PlantCard'
 import { ProfileEditSection } from '@/components/ProfileEditSection'
@@ -171,9 +172,9 @@ export default async function MyPage() {
                       style={{ backgroundColor: bg }}
                     >
                       {plant.image_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={plant.image_url} alt={plant.name}
-                             className="w-full h-full object-cover" />
+                        <Image src={plant.image_url} alt={plant.name}
+                               width={48} height={48}
+                               className="w-full h-full object-cover" />
                       ) : (
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
                              stroke="currentColor" strokeWidth="1.2" className="text-black/20">
