@@ -105,7 +105,7 @@ export function HeroBanner({ banners }: { banners: Banner[] }) {
 
           {/* 부제 */}
           <div className="mt-9 space-y-2">
-            <p className="font-serif text-[15px] text-charcoal">
+            <p className="text-[15px] text-charcoal">
               식물을 콘텐츠처럼, 취향을 큐레이션하다.
             </p>
             <p className="text-[11px] tracking-[0.22em] text-gray-400 uppercase">

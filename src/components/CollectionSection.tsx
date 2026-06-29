@@ -27,6 +27,7 @@ export function CollectionSection({
     .sort((a, b) => a.order_index - b.order_index)
     .map(cp => cp.plants)
     .filter((p): p is PlantCardData => p !== null)
+    .slice(0, 12)
 
   if (plants.length === 0) return null
 
