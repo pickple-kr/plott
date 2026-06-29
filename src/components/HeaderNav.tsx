@@ -13,14 +13,9 @@ const NAV = [
 
 export function HeaderNav({
   userEmail,
-  isAdmin,
-  sellerStatus,
 }: {
   userEmail: string | null
-  isAdmin: boolean
-  sellerStatus: string
 }) {
-  const [userMenu,   setUserMenu]   = useState(false)
   const [mobileMenu, setMobileMenu] = useState(false)
 
   return (
@@ -30,7 +25,7 @@ export function HeaderNav({
 
         {/* 왼쪽: PLOTT 로고 + 형광 별표 */}
         <div>
-          <Link href="/" className="font-display text-2xl tracking-[0.25em] text-charcoal select-none inline-flex items-center gap-1.5">
+          <Link href="/" className="font-logo font-black text-2xl tracking-[0.25em] text-charcoal select-none inline-flex items-center gap-1.5">
             PLOTT
             {/* 목업 속 형광 ✱ 별표 */}
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none"
@@ -69,61 +64,16 @@ export function HeaderNav({
 
           {/* 유저 */}
           <div className="relative">
-            {userEmail ? (
-              <>
-                <button
-                  onClick={() => setUserMenu(!userMenu)}
-                  className="text-charcoal hover:text-gray-400 transition-colors"
-                  aria-label="내 계정"
-                >
-                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                    <circle cx="12" cy="7" r="4"/>
-                  </svg>
-                </button>
-
-                {/* 유저 드롭다운 */}
-                {userMenu && (
-                  <div className="absolute right-0 top-full mt-3 bg-white border border-gray-100 rounded-2xl shadow-lg shadow-black/5 py-2 min-w-[180px] z-50">
-                    <p className="px-4 py-2.5 text-[11px] text-gray-400 truncate border-b border-gray-50 mb-1">
-                      {userEmail}
-                    </p>
-                    {sellerStatus === 'approved' ? (
-                      <Link href="/sell" onClick={() => setUserMenu(false)}
-                        className="block px-4 py-2 text-sm text-charcoal hover:bg-gray-50 transition-colors">
-                        식물 등록
-                      </Link>
-                    ) : (
-                      <Link href="/seller/apply" onClick={() => setUserMenu(false)}
-                        className="block px-4 py-2 text-sm text-charcoal hover:bg-gray-50 transition-colors">
-                        판매자 신청
-                      </Link>
-                    )}
-                    {isAdmin && (
-                      <Link href="/admin" onClick={() => setUserMenu(false)}
-                        className="block px-4 py-2 text-sm text-charcoal hover:bg-gray-50 transition-colors">
-                        관리자
-                      </Link>
-                    )}
-                    <div className="border-t border-gray-50 mt-1 pt-1">
-                      <form action={logout}>
-                        <button type="submit"
-                          className="w-full text-left px-4 py-2 text-sm text-gray-400 hover:text-charcoal hover:bg-gray-50 transition-colors">
-                          로그아웃
-                        </button>
-                      </form>
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <Link href="/login" className="text-charcoal hover:text-gray-400 transition-colors" aria-label="로그인">
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-                </svg>
-              </Link>
-            )}
+            <Link
+              href={userEmail ? '/my' : '/login'}
+              className="text-charcoal hover:text-gray-400 transition-colors"
+              aria-label={userEmail ? '마이페이지' : '로그인'}
+            >
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </Link>
           </div>
 
           {/* 장바구니 */}
@@ -175,6 +125,10 @@ export function HeaderNav({
           {userEmail ? (
             <>
               <span className="px-1 py-2 text-xs text-gray-400 truncate">{userEmail}</span>
+              <Link href="/my" onClick={() => setMobileMenu(false)}
+                className="px-1 py-3 text-sm text-charcoal font-medium">
+                마이페이지
+              </Link>
               <form action={logout}>
                 <button type="submit" onClick={() => setMobileMenu(false)}
                   className="px-1 py-3 text-sm text-gray-400 w-full text-left">
