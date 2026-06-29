@@ -4,4 +4,4 @@ export const PLANT_CATEGORIES = [
   '아프리카·희귀식물',
   '화분·자재',
   '소품',
-] as const
+]
