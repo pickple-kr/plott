@@ -197,40 +197,79 @@ export function HeaderNav({
 
       {/* ── 모바일 드롭다운 ── */}
       {mobileMenu && (
-        <nav className="md:hidden border-t border-gray-100 py-4 flex flex-col gap-0.5">
-          {NAV.map(({ href, label }) => (
-            <Link key={label} href={href} onClick={() => setMobileMenu(false)}
-              className="px-1 py-3 text-sm font-semibold tracking-widest text-charcoal hover:text-gray-400">
-              {label}
-            </Link>
-          ))}
-          <div className="h-px bg-gray-100 my-2"/>
-          {userEmail ? (
-            <>
-              <span className="px-1 py-2 text-xs text-gray-400 truncate">{userEmail}</span>
-              <Link href="/my" onClick={() => setMobileMenu(false)}
-                className="px-1 py-3 text-sm text-charcoal font-medium">
-                마이페이지
+        <nav className="md:hidden border-t border-gray-100">
+
+          {/* 메인 메뉴 */}
+          <div className="py-2">
+            {NAV.map(({ href, label }) => (
+              <Link key={label} href={href} onClick={() => setMobileMenu(false)}
+                className="flex items-center px-1 py-4 text-[13px] font-semibold
+                           tracking-[0.18em] text-charcoal hover:text-gray-400 transition-colors
+                           border-b border-gray-50 last:border-0">
+                {label}
               </Link>
-              {isAdmin && (
-                <Link href="/admin" onClick={() => setMobileMenu(false)}
-                  className="px-1 py-3 text-sm text-charcoal font-medium">
-                  관리자
+            ))}
+          </div>
+
+          {/* 계정 영역 */}
+          <div className="border-t border-gray-100 py-3">
+            {userEmail ? (
+              <>
+                {/* 이메일 표시 */}
+                <p className="px-1 py-2 text-xs text-gray-400 truncate mb-1">{userEmail}</p>
+
+                <Link href="/my" onClick={() => setMobileMenu(false)}
+                  className="flex items-center gap-2.5 px-1 py-3.5 text-sm font-medium
+                             text-charcoal hover:text-gray-400 transition-colors">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  마이페이지
                 </Link>
-              )}
-              <form action={logout}>
-                <button type="submit" onClick={() => setMobileMenu(false)}
-                  className="px-1 py-3 text-sm text-gray-400 w-full text-left">
-                  로그아웃
-                </button>
-              </form>
-            </>
-          ) : (
-            <Link href="/login" onClick={() => setMobileMenu(false)}
-              className="px-1 py-3 text-sm text-charcoal font-medium">
-              로그인 / 회원가입
-            </Link>
-          )}
+
+                {isAdmin && (
+                  <Link href="/admin" onClick={() => setMobileMenu(false)}
+                    className="flex items-center gap-2.5 px-1 py-3.5 text-sm font-medium
+                               text-charcoal hover:text-gray-400 transition-colors">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    관리자
+                  </Link>
+                )}
+
+                <form action={logout}>
+                  <button type="submit" onClick={() => setMobileMenu(false)}
+                    className="flex items-center gap-2.5 px-1 py-3.5 text-sm
+                               text-gray-400 hover:text-charcoal transition-colors w-full text-left">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                      <polyline points="16 17 21 12 16 7"/>
+                      <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    로그아웃
+                  </button>
+                </form>
+              </>
+            ) : (
+              <Link href="/login" onClick={() => setMobileMenu(false)}
+                className="flex items-center gap-2.5 px-1 py-3.5 text-sm font-medium
+                           text-charcoal hover:text-gray-400 transition-colors">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                로그인 / 회원가입
+              </Link>
+            )}
+          </div>
+
         </nav>
       )}
     </>

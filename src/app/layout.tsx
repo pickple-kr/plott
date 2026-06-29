@@ -35,7 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko" className={`${playfair.variable} ${notoSerifKR.variable} ${outfit.variable}`}>
       <body className="min-h-screen flex flex-col bg-white text-charcoal">
         <Header />
-        <main className="flex-1">
+        <main className="flex-1 overflow-x-hidden">
           {children}
         </main>
       </body>

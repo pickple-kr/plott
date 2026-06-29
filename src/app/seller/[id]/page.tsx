@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { PlantCard } from '@/components/PlantCard'
-import { FollowButton } from '@/components/FollowButton'
+import { SellerActions } from '@/components/SellerActions'
 import { toggleWishlist } from '@/app/actions/wishlist'
 import { toggleFollow } from '@/app/actions/follow'
 
@@ -25,7 +25,7 @@ export default async function SellerPage({
   ] = await Promise.all([
     supabase
       .from('profiles')
-      .select('id, business_name, owner_name, seller_status')
+      .select('id, business_name, owner_name, seller_status, display_name, avatar_url')
       .eq('id', id)
       .single(),
     supabase
@@ -55,7 +55,7 @@ export default async function SellerPage({
   const totalFollower = followerCount ?? 0
   const isSelf        = user?.id === id
 
-  const displayName = seller.business_name || seller.owner_name || '판매자'
+  const displayName = seller.display_name || seller.business_name || seller.owner_name || '판매자'
 
   return (
     <div className="max-w-7xl mx-auto px-6 sm:px-8 py-12">
@@ -78,56 +78,39 @@ export default async function SellerPage({
                       pb-10 border-b border-gray-100">
 
         {/* 아바타 */}
-        <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"
-               className="text-gray-300">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
+        <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+          {seller.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={seller.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+          ) : (
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"
+                 className="text-gray-300">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          )}
         </div>
 
-        {/* 이름 + 통계 */}
+        {/* 이름 + 통계 + 팔로우 버튼 */}
         <div className="flex-1">
           <h1 className="font-black text-2xl sm:text-3xl text-charcoal tracking-tight mb-1">
             {displayName}
           </h1>
           {seller.owner_name && seller.business_name && (
-            <p className="text-sm text-gray-400 mb-3">{seller.owner_name}</p>
+            <p className="text-sm text-gray-400">{seller.owner_name}</p>
           )}
 
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 text-sm text-charcoal">
-              <span className="font-bold">{plantList.length}</span>
-              <span className="text-gray-400">식물</span>
-            </span>
-            {/* 본인 페이지에서만 팔로워 수 정적 표시 (FollowButton이 없으므로) */}
-            {isSelf && (
-              <>
-                <span className="w-px h-3 bg-gray-200"/>
-                <span className="inline-flex items-center gap-1.5 text-sm text-charcoal">
-                  <span className="font-bold">{totalFollower}</span>
-                  <span className="text-gray-400">팔로워</span>
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* 팔로우 버튼 (팔로워 수 포함) — 본인이면 숨김 */}
-        {!isSelf && (
-          <FollowButton
-            sellerId={id}
-            initialFollowing={isFollowing}
+          {/* 통계 + 팔로우 버튼 — 팔로워 수 즉시 반영을 위해 클라이언트 컴포넌트 */}
+          <SellerActions
+            plantCount={plantList.length}
             followerCount={totalFollower}
+            isFollowing={isFollowing}
+            isSelf={isSelf}
+            sellerId={id}
             onToggle={toggleFollow}
           />
-        )}
-        {isSelf && (
-          <span className="px-6 py-2.5 rounded-full border border-gray-200 text-sm text-gray-400 select-none">
-            내 스토어
-          </span>
-        )}
+        </div>
       </div>
 
       {/* ── 식물 목록 ── */}

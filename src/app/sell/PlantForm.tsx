@@ -2,11 +2,19 @@
 
 import { useState } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
-import { createPlant } from '@/app/actions/plants'
 
 const CATEGORIES = ['관엽식물', '다육·선인장', '허브', '꽃·화분']
 
-// 이미지를 최대 1200px / JPEG 82% 품질로 줄여주는 함수
+type Plant = {
+  id: string
+  name: string
+  price: number
+  category: string
+  description: string | null
+  purchase_url: string
+  image_url: string | null
+}
+
 async function resizeImage(file: File, maxWidth = 1200, quality = 0.82): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -36,10 +44,18 @@ async function resizeImage(file: File, maxWidth = 1200, quality = 0.82): Promise
   })
 }
 
-export function PlantForm({ userId }: { userId: string }) {
-  const [preview, setPreview] = useState<string | null>(null)
+export function PlantForm({
+  userId,
+  plant,
+  action,
+}: {
+  userId: string
+  plant?: Plant
+  action: (formData: FormData) => Promise<void>
+}) {
+  const [preview, setPreview] = useState<string | null>(plant?.image_url ?? null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error,   setError]   = useState<string | null>(null)
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -48,7 +64,7 @@ export function PlantForm({ userId }: { userId: string }) {
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    if (!file) { setPreview(null); return }
+    if (!file) { setPreview(plant?.image_url ?? null); return }
     setPreview(URL.createObjectURL(file))
   }
 
@@ -61,12 +77,10 @@ export function PlantForm({ userId }: { userId: string }) {
     const formData = new FormData(form)
     const file = form.querySelector<HTMLInputElement>('#image')?.files?.[0]
 
-    // 사진이 있으면: 리사이즈 → Supabase Storage 업로드 → URL을 formData에 추가
     if (file) {
       try {
-        const resized = await resizeImage(file)
-        const fileName = `${userId}/${Date.now()}.jpg`
-
+        const resized   = await resizeImage(file)
+        const fileName  = `${userId}/${Date.now()}.jpg`
         const { error: uploadError } = await supabase.storage
           .from('plant-images')
           .upload(fileName, resized, { contentType: 'image/jpeg' })
@@ -86,15 +100,23 @@ export function PlantForm({ userId }: { userId: string }) {
       }
     }
 
-    // 파일 자체는 서버 액션에 보내지 않음 (이미 Storage에 올렸으니까)
     formData.delete('image')
-
-    await createPlant(formData)
+    await action(formData)
   }
+
+  const isEdit = !!plant
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {error && <p className="text-sm text-red-500">{error}</p>}
+
+      {/* 수정 모드일 때 plant_id + 기존 이미지 URL hidden 전달 */}
+      {isEdit && (
+        <>
+          <input type="hidden" name="plant_id" value={plant.id} />
+          <input type="hidden" name="existing_image_url" value={plant.image_url ?? ''} />
+        </>
+      )}
 
       {/* 사진 */}
       <div className="space-y-2">
@@ -102,25 +124,18 @@ export function PlantForm({ userId }: { userId: string }) {
           사진 <span className="text-gray-400 font-normal">(선택)</span>
         </label>
         {preview && (
-          <img
-            src={preview}
-            alt="미리보기"
-            className="w-full max-h-52 object-cover rounded border border-gray-200"
-          />
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={preview} alt="미리보기"
+               className="w-full max-h-52 object-cover rounded border border-gray-200" />
         )}
         <input
-          id="image"
-          name="image"
-          type="file"
-          accept="image/*"
+          id="image" name="image" type="file" accept="image/*"
           onChange={handleFileChange}
           className="w-full text-sm text-gray-500
             file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0
             file:text-sm file:bg-gray-100 file:text-gray-700 file:cursor-pointer"
         />
-        <p className="text-xs text-gray-400">
-          폰 사진도 OK — 자동으로 1200px / JPEG로 압축돼요
-        </p>
+        <p className="text-xs text-gray-400">폰 사진도 OK — 자동으로 1200px / JPEG로 압축돼요</p>
       </div>
 
       {/* 식물 이름 */}
@@ -130,6 +145,7 @@ export function PlantForm({ userId }: { userId: string }) {
         </label>
         <input
           id="name" name="name" type="text" required
+          defaultValue={plant?.name ?? ''}
           placeholder="예: 몬스테라 델리시오사"
           className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-black"
         />
@@ -142,6 +158,7 @@ export function PlantForm({ userId }: { userId: string }) {
         </label>
         <input
           id="price" name="price" type="number" required min={0}
+          defaultValue={plant?.price ?? ''}
           placeholder="예: 15000"
           className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-black"
         />
@@ -153,7 +170,8 @@ export function PlantForm({ userId }: { userId: string }) {
           카테고리 <span className="text-red-400">*</span>
         </label>
         <select
-          id="category" name="category" required defaultValue=""
+          id="category" name="category" required
+          defaultValue={plant?.category ?? ''}
           className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-black bg-white"
         >
           <option value="" disabled>선택하세요</option>
@@ -170,6 +188,7 @@ export function PlantForm({ userId }: { userId: string }) {
         </label>
         <textarea
           id="description" name="description" rows={4}
+          defaultValue={plant?.description ?? ''}
           placeholder="식물의 특징, 크기, 관리 방법 등을 적어주세요"
           className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-black resize-none"
         />
@@ -182,17 +201,17 @@ export function PlantForm({ userId }: { userId: string }) {
         </label>
         <input
           id="purchase_url" name="purchase_url" type="url" required
+          defaultValue={plant?.purchase_url ?? ''}
           placeholder="https://smartstore.naver.com/..."
           className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-black"
         />
       </div>
 
       <button
-        type="submit"
-        disabled={loading}
+        type="submit" disabled={loading}
         className="w-full bg-black text-white rounded py-2.5 text-sm font-medium disabled:opacity-50"
       >
-        {loading ? '등록 중...' : '등록하기'}
+        {loading ? (isEdit ? '수정 중...' : '등록 중...') : (isEdit ? '수정하기' : '등록하기')}
       </button>
     </form>
   )

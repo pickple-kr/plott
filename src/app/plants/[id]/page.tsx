@@ -30,7 +30,7 @@ export default async function PlantDetailPage({
       ? supabase.from('wishlists').select('id').eq('user_id', user.id).eq('plant_id', id).maybeSingle()
       : Promise.resolve({ data: null }),
     plant.user_id
-      ? supabase.from('profiles').select('business_name, owner_name').eq('id', plant.user_id).single()
+      ? supabase.from('profiles').select('business_name, owner_name, display_name, avatar_url').eq('id', plant.user_id).single()
       : Promise.resolve({ data: null }),
   ])
 
@@ -147,30 +147,33 @@ export default async function PlantDetailPage({
           </div>
 
           {/* 판매자 정보 — 클릭하면 판매자 페이지로 이동 */}
-          {sellerData && (sellerData.business_name || sellerData.owner_name) && plant.user_id && (
+          {sellerData && plant.user_id && (sellerData.display_name || sellerData.business_name || sellerData.owner_name) && (
             <div className="border-t border-gray-100 pt-5 mt-2">
               <p className="text-xs text-gray-400 mb-2">판매자 정보</p>
               <Link
                 href={`/seller/${plant.user_id}`}
                 className="flex items-center gap-3 group w-fit"
               >
-                <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0
+                <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0
                                 group-hover:bg-gray-200 transition-colors">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                       stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
-                       className="text-gray-400">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                    <circle cx="12" cy="7" r="4"/>
-                  </svg>
+                  {sellerData.avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={sellerData.avatar_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                         className="text-gray-400">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                      <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                  )}
                 </div>
                 <div>
-                  {sellerData.business_name && (
-                    <p className="text-sm font-medium text-charcoal group-hover:text-gray-600 transition-colors">
-                      {sellerData.business_name}
-                    </p>
-                  )}
-                  {sellerData.owner_name && (
-                    <p className="text-xs text-gray-400">{sellerData.owner_name}</p>
+                  <p className="text-sm font-medium text-charcoal group-hover:text-gray-600 transition-colors">
+                    {sellerData.display_name || sellerData.business_name || sellerData.owner_name}
+                  </p>
+                  {sellerData.display_name && sellerData.business_name && (
+                    <p className="text-xs text-gray-400">{sellerData.business_name}</p>
                   )}
                 </div>
                 <svg width="13" height="13" viewBox="0 0 13 13" fill="none"

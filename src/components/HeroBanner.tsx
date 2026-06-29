@@ -20,8 +20,7 @@ export function HeroBanner({ banners }: { banners: Banner[] }) {
 
   return (
     <section
-      className="relative overflow-hidden border-b border-gray-100"
-      style={{ minHeight: '520px' }}
+      className="relative overflow-hidden border-b border-gray-100 min-h-[340px] sm:min-h-[520px]"
     >
 
       {/* ══ 슬라이드 배경 트랙 ══════════════════════════════ */}
@@ -70,15 +69,15 @@ export function HeroBanner({ banners }: { banners: Banner[] }) {
       )}
 
       {/* ══ 텍스트 오버레이 (항상 고정) ════════════════════ */}
-      <div className="relative z-20 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
+      <div className="relative z-20 max-w-7xl mx-auto px-5 sm:px-10 lg:px-16">
         <div
-          className="flex flex-col justify-center py-16 sm:py-20"
-          style={{ minHeight: '520px', maxWidth: '540px' }}
+          className="flex flex-col justify-center py-12 sm:py-20 min-h-[340px] sm:min-h-[520px]"
+          style={{ maxWidth: '540px' }}
         >
           {/* 메인 타이틀 */}
           <h1
             className="font-black leading-[0.88] tracking-tight text-charcoal uppercase"
-            style={{ fontSize: 'clamp(56px, 7vw, 92px)' }}
+            style={{ fontSize: 'clamp(36px, 10vw, 92px)' }}
           >
             PLANTS<br />
             MAKE<br />
@@ -145,72 +144,6 @@ export function HeroBanner({ banners }: { banners: Banner[] }) {
         </div>
       </div>
 
-      {/* ══ 손글씨 장식 ══════════════════════════════════════ */}
-
-      {/* 핑크 손글씨 곡선 화살표 */}
-      <div
-        className="hidden md:block absolute pointer-events-none z-20"
-        style={{ left: '36%', top: '42%' }}
-      >
-        <svg width="92" height="104" viewBox="0 0 92 104" fill="none">
-          <path d="M22 8 C 30 2, 78 18, 70 58 C 66 76, 52 86, 48 98"
-                stroke="#FF6BAC" strokeWidth="2.8" strokeLinecap="round"/>
-          <path d="M38 92 L48 98 L56 88"
-                stroke="#FF6BAC" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </div>
-
-      {/* GOOD PLANTS GOOD VIBES 라임 원형 뱃지 */}
-      <div
-        className="hidden md:block absolute pointer-events-none z-20"
-        style={{ left: 'calc(40% - 72px)', top: '18%' }}
-      >
-        <div style={{ transform: 'rotate(-13deg)' }}>
-          <svg width="144" height="144" viewBox="0 0 144 144">
-            <circle cx="72" cy="72" r="66"
-                    fill="none" stroke="#D4F034" strokeWidth="13" strokeDasharray="9 4"/>
-            <circle cx="72" cy="72" r="57" fill="#D4F034"/>
-            <defs>
-              <path id="badge-ring"
-                    d="M72,72 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0"/>
-            </defs>
-            <text fontSize="8" fontWeight="700" fill="#0A0A0A" letterSpacing="2.2">
-              <textPath href="#badge-ring" startOffset="7%">
-                GOOD PLANTS • GOOD VIBES •
-              </textPath>
-            </text>
-            <circle cx="72" cy="72" r="23" fill="none" stroke="#0A0A0A" strokeWidth="2"/>
-            <circle cx="64" cy="66" r="2.8" fill="#0A0A0A"/>
-            <circle cx="80" cy="66" r="2.8" fill="#0A0A0A"/>
-            <path d="M62 76 Q72 87 82 76"
-                  stroke="#0A0A0A" strokeWidth="2.2" fill="none" strokeLinecap="round"/>
-          </svg>
-        </div>
-      </div>
-
-      {/* 별 낙서 1 */}
-      <div
-        className="hidden md:block absolute pointer-events-none z-10"
-        style={{ left: '7%', top: '14%' }}
-      >
-        <svg width="22" height="22" viewBox="0 0 22 22" fill="#0A0A0A">
-          <path d="M11 1 L13.2 8 L20.5 7 L15.5 12 L18 19.5 L11 15.5 L4 19.5 L6.5 12 L1.5 7 L8.8 8 Z"/>
-        </svg>
-      </div>
-
-      {/* 별 낙서 2 */}
-      <div
-        className="hidden md:block absolute pointer-events-none z-10"
-        style={{ left: '32%', top: '72%' }}
-      >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
-             stroke="#0A0A0A" strokeWidth="1.6" strokeLinecap="round">
-          <line x1="10" y1="1"  x2="10" y2="19"/>
-          <line x1="1"  y1="10" x2="19" y2="10"/>
-          <line x1="3.5"  y1="3.5"  x2="16.5" y2="16.5"/>
-          <line x1="16.5" y1="3.5"  x2="3.5"  y2="16.5"/>
-        </svg>
-      </div>
 
       {/* ══ 슬라이드 컨트롤 (배너 2개 이상일 때만 표시) ══ */}
       {count > 1 && (

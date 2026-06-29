@@ -3,25 +3,11 @@ import { createClient } from '@/lib/supabase/server'
 
 const CATEGORIES = ['자랑', '고민', '팁', '자유']
 
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 1) return '방금'
-  if (mins < 60) return `${mins}분 전`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}시간 전`
-  const days = Math.floor(hours / 24)
-  if (days < 7) return `${days}일 전`
-  return new Date(dateStr).toLocaleDateString('ko-KR')
-}
-
-type Post = {
-  id: string
-  category: string
-  title: string
-  created_at: string
-  comments: { count: number }[]
-  likes: { count: number }[]
+const BADGE: Record<string, { bg: string; color: string }> = {
+  '자랑': { bg: '#FBEAF0', color: '#993556' },
+  '고민': { bg: '#FAEEDA', color: '#854F0B' },
+  '팁':   { bg: '#E1F5EE', color: '#0F6E56' },
+  '자유': { bg: '#F3F4F6', color: '#6B7280' },
 }
 
 export default async function CommunityPage({
@@ -31,12 +17,11 @@ export default async function CommunityPage({
 }) {
   const { category } = await searchParams
   const supabase = await createClient()
-
   const { data: { user } } = await supabase.auth.getUser()
 
   let query = supabase
     .from('posts')
-    .select('id, category, title, created_at, comments(count), likes(count)')
+    .select('id, category, title, created_at, user_id, comments(count), likes(count)')
     .order('created_at', { ascending: false })
 
   if (category && CATEGORIES.includes(category)) {
@@ -44,38 +29,72 @@ export default async function CommunityPage({
   }
 
   const { data, error } = await query
-  const posts = data as Post[] | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const posts = (data ?? []) as any[]
+
+  /* 작성자 이메일: user_id 목록으로 profiles 따로 조회 */
+  const userIds = [...new Set(posts.map((p) => p.user_id).filter(Boolean))]
+  const { data: profilesData } = userIds.length > 0
+    ? await supabase.from('profiles').select('id, email, display_name').in('id', userIds)
+    : { data: [] as { id: string; email: string; display_name: string | null }[] }
+  const profileMap = new Map(
+    (profilesData ?? []).map((p) => [
+      p.id,
+      p.display_name || p.email?.split('@')[0] || '익명',
+    ])
+  )
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
-      {/* 헤더 */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">커뮤니티</h1>
+    <div className="max-w-7xl mx-auto px-6 sm:px-8 py-12">
+
+      {/* ── 페이지 제목 ── */}
+      <div className="flex items-end justify-between mb-10">
+        <div>
+          <div className="relative w-fit mb-2">
+            <h1 className="font-black text-4xl sm:text-5xl text-charcoal tracking-tight">
+              커뮤니티
+            </h1>
+            <svg
+              className="absolute left-0 w-full overflow-visible pointer-events-none"
+              style={{ bottom: '-4px' }}
+              height="10" viewBox="0 0 200 10"
+              preserveAspectRatio="none" aria-hidden="true"
+            >
+              <path d="M2 7 C 45 2, 92 9, 135 5 C 168 2, 192 8, 198 5"
+                    fill="none" stroke="#FF6BAC" strokeWidth="6"
+                    strokeLinecap="round" opacity="0.85"/>
+            </svg>
+          </div>
+          <p className="text-sm text-gray-400 mt-3">식물 자랑, 고민, 팁을 나눠요</p>
+        </div>
+
         {user ? (
           <Link
             href="/community/write"
-            className="text-sm bg-black text-white rounded px-3 py-1.5"
+            className="px-5 py-2 bg-charcoal text-white text-sm font-medium rounded-full
+                       hover:bg-charcoal-soft transition-colors"
           >
             글쓰기
           </Link>
         ) : (
           <Link
             href="/login"
-            className="text-sm border border-gray-300 rounded px-3 py-1.5 text-gray-600"
+            className="px-5 py-2 border border-gray-200 text-gray-500 text-sm font-medium
+                       rounded-full hover:border-charcoal hover:text-charcoal transition-colors"
           >
             로그인하고 글쓰기
           </Link>
         )}
       </div>
 
-      {/* 카테고리 필터 */}
-      <div className="flex gap-2 flex-wrap mb-6">
+      {/* ── 카테고리 필터 ── */}
+      <div className="flex gap-2 flex-wrap mb-8">
         <Link
           href="/community"
-          className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+          className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
             !category
-              ? 'bg-black text-white border-black'
-              : 'border-gray-300 text-gray-600 hover:border-black hover:text-black'
+              ? 'bg-charcoal text-white'
+              : 'border border-gray-200 text-gray-500 hover:border-charcoal hover:text-charcoal'
           }`}
         >
           전체
@@ -84,10 +103,10 @@ export default async function CommunityPage({
           <Link
             key={cat}
             href={`/community?category=${encodeURIComponent(cat)}`}
-            className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
               category === cat
-                ? 'bg-black text-white border-black'
-                : 'border-gray-300 text-gray-600 hover:border-black hover:text-black'
+                ? 'bg-charcoal text-white'
+                : 'border border-gray-200 text-gray-500 hover:border-charcoal hover:text-charcoal'
             }`}
           >
             {cat}
@@ -95,50 +114,57 @@ export default async function CommunityPage({
         ))}
       </div>
 
-      {/* 에러 */}
-      {error && (
-        <p className="text-sm text-red-500">불러오기 실패: {error.message}</p>
-      )}
+      {error && <p className="text-sm text-red-500 mb-4">불러오기 실패: {error.message}</p>}
 
-      {/* 글 없을 때 */}
-      {!error && posts && posts.length === 0 && (
-        <div className="text-center py-24 text-gray-400">
-          <p className="mb-2">아직 게시글이 없어요</p>
+      {/* 빈 상태 */}
+      {!error && posts.length === 0 && (
+        <div className="text-center py-32">
+          <p className="font-serif text-2xl text-gray-200 mb-4">아직 게시글이 없어요</p>
           {user ? (
-            <Link href="/community/write" className="text-sm underline hover:text-black">
-              첫 글을 써보세요
-            </Link>
+            <Link href="/community/write" className="text-sm text-forest hover:underline">첫 글을 써보세요 →</Link>
           ) : (
-            <Link href="/login" className="text-sm underline hover:text-black">
-              로그인하고 첫 글을 써보세요
-            </Link>
+            <Link href="/login" className="text-sm text-forest hover:underline">로그인하고 첫 글을 써보세요 →</Link>
           )}
         </div>
       )}
 
-      {/* 글 목록 */}
-      {posts && posts.length > 0 && (
-        <div className="divide-y divide-gray-100">
+      {/* ── 게시글 목록 ── */}
+      {posts.length > 0 && (
+        <div className="border-t border-gray-100">
           {posts.map((post) => {
-            const commentCount = Number(post.comments[0]?.count ?? 0)
-            const likeCount = Number(post.likes[0]?.count ?? 0)
+            const commentCount = Number(post.comments?.[0]?.count ?? 0)
+            const badge        = BADGE[post.category] ?? { bg: '#F3F4F6', color: '#6B7280' }
+            const displayName  = profileMap.get(post.user_id) ?? '익명'
+
             return (
               <Link
                 key={post.id}
                 href={`/community/${post.id}`}
-                className="block py-4 hover:bg-gray-50 -mx-2 px-2 rounded transition-colors"
+                className="flex items-center gap-3 sm:gap-4 py-4 border-b border-gray-100
+                           hover:bg-gray-50 -mx-2 px-2 rounded transition-colors"
               >
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full">
-                    {post.category}
-                  </span>
-                  <span className="text-xs text-gray-300">{timeAgo(post.created_at)}</span>
-                </div>
-                <p className="text-sm font-medium">{post.title}</p>
-                <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-400">
-                  <span>댓글 {commentCount}</span>
-                  <span>좋아요 {likeCount}</span>
-                </div>
+                {/* 카테고리 뱃지 */}
+                <span
+                  className="flex-shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded"
+                  style={{ backgroundColor: badge.bg, color: badge.color }}
+                >
+                  {post.category}
+                </span>
+
+                {/* 제목 */}
+                <span className="flex-1 text-sm font-medium text-charcoal truncate">
+                  {post.title}
+                </span>
+
+                {/* 댓글 수 */}
+                <span className="flex-shrink-0 text-xs text-gray-400">
+                  댓글 {commentCount}
+                </span>
+
+                {/* 작성자 */}
+                <span className="flex-shrink-0 text-xs text-gray-300 hidden sm:block">
+                  {displayName}
+                </span>
               </Link>
             )
           })}

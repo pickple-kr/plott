@@ -34,15 +34,15 @@ export function CollectionSection({
     <div className="py-3">
 
       {/* 섹션 헤더 */}
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 mb-5">
-        <h2 className="font-black text-xl sm:text-2xl text-charcoal tracking-tight">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 mb-3 flex items-baseline gap-2.5">
+        <h2 className="font-semibold text-lg sm:text-xl text-charcoal shrink-0">
           {collection.emoji && (
             <span className="mr-2 font-normal">{collection.emoji}</span>
           )}
           {collection.title}
         </h2>
         {collection.description && (
-          <p className="text-sm text-gray-400 mt-1">{collection.description}</p>
+          <p className="text-sm text-gray-400">{collection.description}</p>
         )}
       </div>
 

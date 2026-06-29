@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { PlantForm } from './PlantForm'
+import { createPlant } from '@/app/actions/plants'
 
 const GATE_MESSAGE: Record<string, { title: string; desc: string; btn: string }> = {
   none: {
@@ -62,7 +63,7 @@ export default async function SellPage({
     <main className="max-w-lg mx-auto px-6 py-12">
       <h1 className="text-2xl font-semibold mb-6">식물 등록</h1>
       {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
-      <PlantForm userId={user.id} />
+      <PlantForm userId={user.id} action={createPlant} />
     </main>
   )
 }

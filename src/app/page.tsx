@@ -97,6 +97,13 @@ export default async function Home() {
       .order('order_index', { ascending: true }),
   ])
 
+  /* 최근 커뮤니티 글 4개 */
+  const { data: recentPosts } = await supabase
+    .from('posts')
+    .select('id, title, category, comments(count)')
+    .order('created_at', { ascending: false })
+    .limit(4)
+
   /* 찜 목록 (로그인한 경우만) */
   const { data: wishlistData } = user
     ? await supabase.from('wishlists').select('plant_id').eq('user_id', user.id)
@@ -222,6 +229,141 @@ export default async function Home() {
           ))}
         </div>
       )}
+
+      {/* ═══════════════════════════════════════════════
+          커뮤니티 유도 섹션
+      ═══════════════════════════════════════════════ */}
+      <section className="py-16 bg-[#F7F5F0]">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8">
+
+          <div className="flex flex-col md:flex-row gap-10 md:gap-16 items-start">
+
+            {/* ── 왼쪽: 헤드카피 + 버튼 ── */}
+            <div className="md:w-72 flex-shrink-0">
+              <div className="relative w-fit mb-3">
+                <h2 className="font-black text-3xl sm:text-4xl text-charcoal tracking-tight leading-tight">
+                  PLOTT<br/>커뮤니티
+                </h2>
+                <svg
+                  className="absolute left-0 w-full overflow-visible pointer-events-none"
+                  style={{ bottom: '-4px' }}
+                  height="10" viewBox="0 0 200 10"
+                  preserveAspectRatio="none" aria-hidden="true"
+                >
+                  <path d="M2 7 C 45 2, 92 9, 135 5 C 168 2, 192 8, 198 5"
+                        fill="none" stroke="#c8f135" strokeWidth="6"
+                        strokeLinecap="round" opacity="0.9"/>
+                </svg>
+              </div>
+
+              <p className="text-sm text-gray-500 leading-relaxed mt-5 mb-7">
+                식물 키우다 궁금한 게 생겼나요?<br/>
+                자랑도, 고민도, 팁도<br/>
+                여기서 함께 나눠요.
+              </p>
+
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/community/write"
+                  className="px-5 py-2.5 bg-charcoal text-white text-sm font-medium
+                             rounded-full hover:bg-charcoal/80 transition-colors"
+                >
+                  글쓰기
+                </Link>
+                <Link
+                  href="/community"
+                  className="px-5 py-2.5 border border-gray-300 text-charcoal text-sm font-medium
+                             rounded-full hover:border-charcoal transition-colors"
+                >
+                  커뮤니티 가기
+                </Link>
+              </div>
+            </div>
+
+            {/* ── 오른쪽: 최근 글 목록 ── */}
+            <div className="flex-1 w-full">
+              {(!recentPosts || recentPosts.length === 0) ? (
+                <div className="flex flex-col items-center justify-center py-16
+                                border border-dashed border-gray-200 rounded-3xl bg-white">
+                  <p className="text-sm text-gray-300 mb-3">아직 게시글이 없어요</p>
+                  <Link href="/community/write"
+                        className="text-sm text-forest hover:underline">
+                    첫 글을 써보세요 →
+                  </Link>
+                </div>
+              ) : (
+                <ul className="space-y-3">
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  {(recentPosts as any[]).map((post) => {
+                    const commentCount = Number(post.comments?.[0]?.count ?? 0)
+                    const BADGE: Record<string, { bg: string; color: string }> = {
+                      '자랑': { bg: '#FBEAF0', color: '#993556' },
+                      '고민': { bg: '#FAEEDA', color: '#854F0B' },
+                      '팁':   { bg: '#E1F5EE', color: '#0F6E56' },
+                      '자유': { bg: '#F3F4F6', color: '#6B7280' },
+                    }
+                    const badge = BADGE[post.category] ?? { bg: '#F3F4F6', color: '#6B7280' }
+                    return (
+                      <li key={post.id}>
+                        <Link
+                          href={`/community/${post.id}`}
+                          className="flex items-center gap-4 bg-white rounded-2xl px-5 py-4
+                                     hover:shadow-sm transition-shadow group"
+                        >
+                          <span
+                            className="flex-shrink-0 text-[11px] font-black px-2.5 py-1
+                                       rounded-full tracking-wide"
+                            style={{ backgroundColor: badge.bg, color: badge.color }}
+                          >
+                            {post.category}
+                          </span>
+                          <span className="flex-1 text-sm font-medium text-charcoal
+                                           truncate group-hover:text-gray-600 transition-colors">
+                            {post.title}
+                          </span>
+                          <span className="flex-shrink-0 flex items-center gap-1
+                                           text-xs text-gray-300">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14
+                                       a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            {commentCount}
+                          </span>
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
+                               stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                               className="flex-shrink-0 text-gray-300
+                                          group-hover:text-gray-400 transition-colors">
+                            <path d="M5 2l5 5-5 5"/>
+                          </svg>
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+
+              {/* 더보기 */}
+              {recentPosts && recentPosts.length > 0 && (
+                <div className="mt-5 text-right">
+                  <Link
+                    href="/community"
+                    className="inline-flex items-center gap-1.5 text-sm text-gray-400
+                               hover:text-charcoal transition-colors"
+                  >
+                    더보기
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"
+                         stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                      <path d="M4 2l5 4.5L4 11"/>
+                    </svg>
+                  </Link>
+                </div>
+              )}
+            </div>
+
+          </div>
+        </div>
+      </section>
 
     </div>
   )
