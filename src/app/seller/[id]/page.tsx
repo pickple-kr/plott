@@ -101,15 +101,20 @@ export default async function SellerPage({
               <span className="font-bold">{plantList.length}</span>
               <span className="text-gray-400">식물</span>
             </span>
-            <span className="w-px h-3 bg-gray-200"/>
-            <span className="inline-flex items-center gap-1.5 text-sm text-charcoal">
-              <span className="font-bold">{totalFollower}</span>
-              <span className="text-gray-400">팔로워</span>
-            </span>
+            {/* 본인 페이지에서만 팔로워 수 정적 표시 (FollowButton이 없으므로) */}
+            {isSelf && (
+              <>
+                <span className="w-px h-3 bg-gray-200"/>
+                <span className="inline-flex items-center gap-1.5 text-sm text-charcoal">
+                  <span className="font-bold">{totalFollower}</span>
+                  <span className="text-gray-400">팔로워</span>
+                </span>
+              </>
+            )}
           </div>
         </div>
 
-        {/* 팔로우 버튼 — 본인이면 숨김 */}
+        {/* 팔로우 버튼 (팔로워 수 포함) — 본인이면 숨김 */}
         {!isSelf && (
           <FollowButton
             sellerId={id}
