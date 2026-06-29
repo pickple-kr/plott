@@ -2,7 +2,9 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { PlantCard } from '@/components/PlantCard'
+import { FollowButton } from '@/components/FollowButton'
 import { toggleWishlist } from '@/app/actions/wishlist'
+import { toggleFollow } from '@/app/actions/follow'
 
 export default async function SellerPage({
   params,
@@ -13,8 +15,14 @@ export default async function SellerPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  /* 판매자 프로필 · 식물 목록 · 찜 목록 병렬 조회 */
-  const [{ data: seller }, { data: plants }, { data: wishlistData }] = await Promise.all([
+  /* 판매자 프로필 · 식물 · 찜 목록 · 팔로워 수 · 내 팔로우 여부 병렬 조회 */
+  const [
+    { data: seller },
+    { data: plants },
+    { data: wishlistData },
+    { count: followerCount },
+    { data: followRow },
+  ] = await Promise.all([
     supabase
       .from('profiles')
       .select('id, business_name, owner_name, seller_status')
@@ -28,13 +36,24 @@ export default async function SellerPage({
     user
       ? supabase.from('wishlists').select('plant_id').eq('user_id', user.id)
       : Promise.resolve({ data: [] as { plant_id: string }[] }),
+    supabase
+      .from('follows')
+      .select('id', { count: 'exact', head: true })
+      .eq('seller_id', id),
+    user
+      ? supabase.from('follows').select('id')
+          .eq('follower_id', user.id).eq('seller_id', id).maybeSingle()
+      : Promise.resolve({ data: null }),
   ])
 
   /* 판매자가 없거나 미승인이면 404 */
   if (!seller || seller.seller_status !== 'approved') notFound()
 
-  const wishlistSet = new Set((wishlistData ?? []).map(w => w.plant_id))
-  const plantList   = plants ?? []
+  const wishlistSet   = new Set((wishlistData ?? []).map(w => w.plant_id))
+  const plantList     = plants ?? []
+  const isFollowing   = !!followRow
+  const totalFollower = followerCount ?? 0
+  const isSelf        = user?.id === id
 
   const displayName = seller.business_name || seller.owner_name || '판매자'
 
@@ -77,30 +96,33 @@ export default async function SellerPage({
             <p className="text-sm text-gray-400 mb-3">{seller.owner_name}</p>
           )}
 
-          {/* 통계 칩들 */}
           <div className="flex items-center gap-3 flex-wrap">
             <span className="inline-flex items-center gap-1.5 text-sm text-charcoal">
               <span className="font-bold">{plantList.length}</span>
               <span className="text-gray-400">식물</span>
             </span>
             <span className="w-px h-3 bg-gray-200"/>
-            <span className="inline-flex items-center gap-1.5 text-sm text-gray-400">
-              <span className="font-bold text-charcoal">—</span>
-              <span>팔로워</span>
-              <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 rounded text-gray-400">준비 중</span>
+            <span className="inline-flex items-center gap-1.5 text-sm text-charcoal">
+              <span className="font-bold">{totalFollower}</span>
+              <span className="text-gray-400">팔로워</span>
             </span>
           </div>
         </div>
 
-        {/* 팔로우 버튼 (자리만 — 기능은 다음 단계) */}
-        <button
-          disabled
-          className="px-6 py-2.5 rounded-full border border-gray-200 text-sm font-medium
-                     text-gray-400 cursor-not-allowed select-none"
-          title="팔로우 기능은 준비 중이에요"
-        >
-          + 팔로우
-        </button>
+        {/* 팔로우 버튼 — 본인이면 숨김 */}
+        {!isSelf && (
+          <FollowButton
+            sellerId={id}
+            initialFollowing={isFollowing}
+            followerCount={totalFollower}
+            onToggle={toggleFollow}
+          />
+        )}
+        {isSelf && (
+          <span className="px-6 py-2.5 rounded-full border border-gray-200 text-sm text-gray-400 select-none">
+            내 스토어
+          </span>
+        )}
       </div>
 
       {/* ── 식물 목록 ── */}
