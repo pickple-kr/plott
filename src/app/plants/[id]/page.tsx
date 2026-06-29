@@ -146,12 +146,16 @@ export default async function PlantDetailPage({
             />
           </div>
 
-          {/* 판매자 정보 */}
-          {sellerData && (sellerData.business_name || sellerData.owner_name) && (
+          {/* 판매자 정보 — 클릭하면 판매자 페이지로 이동 */}
+          {sellerData && (sellerData.business_name || sellerData.owner_name) && plant.user_id && (
             <div className="border-t border-gray-100 pt-5 mt-2">
               <p className="text-xs text-gray-400 mb-2">판매자 정보</p>
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+              <Link
+                href={`/seller/${plant.user_id}`}
+                className="flex items-center gap-3 group w-fit"
+              >
+                <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0
+                                group-hover:bg-gray-200 transition-colors">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                        stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
                        className="text-gray-400">
@@ -161,13 +165,20 @@ export default async function PlantDetailPage({
                 </div>
                 <div>
                   {sellerData.business_name && (
-                    <p className="text-sm font-medium text-charcoal">{sellerData.business_name}</p>
+                    <p className="text-sm font-medium text-charcoal group-hover:text-gray-600 transition-colors">
+                      {sellerData.business_name}
+                    </p>
                   )}
                   {sellerData.owner_name && (
                     <p className="text-xs text-gray-400">{sellerData.owner_name}</p>
                   )}
                 </div>
-              </div>
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"
+                     stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                     className="text-gray-300 group-hover:text-gray-400 transition-colors ml-1">
+                  <path d="M4 2l5 4.5L4 11"/>
+                </svg>
+              </Link>
             </div>
           )}
 
