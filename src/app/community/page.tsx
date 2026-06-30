@@ -41,7 +41,7 @@ export default async function CommunityPage({
 
   let query = supabase
     .from('posts')
-    .select('id, category, title, created_at, user_id, image_url, comments(count), likes(count)')
+    .select('id, category, title, created_at, user_id, image_url, image_urls, comments(count), likes(count)')
     .order('created_at', { ascending: false })
 
   if (category && CATEGORIES.includes(category)) {
@@ -152,11 +152,12 @@ export default async function CommunityPage({
       {posts.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {posts.map((post) => {
-            const commentCount = Number(post.comments?.[0]?.count ?? 0)
-            const likeCount    = Number(post.likes?.[0]?.count ?? 0)
-            const badge        = BADGE[post.category] ?? { bg: '#E5E7EB', color: '#6B7280' }
+            const commentCount  = Number(post.comments?.[0]?.count ?? 0)
+            const likeCount     = Number(post.likes?.[0]?.count ?? 0)
+            const badge         = BADGE[post.category] ?? { bg: '#E5E7EB', color: '#6B7280' }
             const placeholderBg = PLACEHOLDER_BG[post.category] ?? '#F3F4F6'
-            const displayName  = profileMap.get(post.user_id) ?? '익명'
+            const displayName   = profileMap.get(post.user_id) ?? '익명'
+            const thumbUrl      = post.image_urls?.[0] ?? post.image_url ?? null
 
             return (
               <Link
@@ -170,9 +171,9 @@ export default async function CommunityPage({
                   className="relative aspect-square w-full overflow-hidden"
                   style={{ backgroundColor: placeholderBg }}
                 >
-                  {post.image_url ? (
+                  {thumbUrl ? (
                     <Image
-                      src={post.image_url}
+                      src={thumbUrl}
                       alt={post.title}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"

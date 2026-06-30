@@ -11,21 +11,26 @@ export async function createPost(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const category = formData.get('category') as string
-  const title    = formData.get('title') as string
-  const content  = formData.get('content') as string
-  const imageUrl = (formData.get('image_url') as string) || null
+  const category      = formData.get('category') as string
+  const title         = formData.get('title') as string
+  const content       = formData.get('content') as string
+  const imageUrl      = (formData.get('image_url') as string) || null
+  const imageUrlsJson = (formData.get('image_urls_json') as string) || '[]'
+
+  let imageUrls: string[] = []
+  try { imageUrls = JSON.parse(imageUrlsJson) } catch { imageUrls = [] }
 
   if (!category || !CATEGORIES.includes(category) || !title?.trim() || !content?.trim()) {
     redirect(`/community/write?error=${encodeURIComponent('카테고리, 제목, 내용은 필수예요.')}`)
   }
 
   const { error } = await supabase.from('posts').insert({
-    user_id:   user.id,
+    user_id:    user.id,
     category,
-    title:     title.trim(),
-    content:   content.trim(),
-    image_url: imageUrl,
+    title:      title.trim(),
+    content:    content.trim(),
+    image_url:  imageUrl,
+    image_urls: imageUrls,
   })
 
   if (error) {

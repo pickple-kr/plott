@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 import { createPost } from '@/app/actions/community'
 
 const CATEGORIES = ['자랑', '고민', '팁', '자유']
+const MAX_IMAGES = 5
 
 async function resizeImage(file: File, maxWidth = 1200, quality = 0.82): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -35,20 +36,40 @@ async function resizeImage(file: File, maxWidth = 1200, quality = 0.82): Promise
   })
 }
 
+type PreviewItem = { file: File; previewUrl: string }
+
 export function PostForm({ userId }: { userId: string }) {
-  const [preview, setPreview] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError]     = useState<string | null>(null)
+  const [previews, setPreviews] = useState<PreviewItem[]>([])
+  const [loading, setLoading]   = useState(false)
+  const [error, setError]       = useState<string | null>(null)
+  const fileInputRef            = useRef<HTMLInputElement>(null)
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
   )
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) { setPreview(null); return }
-    setPreview(URL.createObjectURL(file))
+  function handleFilesChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? [])
+    if (!files.length) return
+
+    const remaining = MAX_IMAGES - previews.length
+    const toAdd = files.slice(0, remaining)
+
+    const newPreviews: PreviewItem[] = toAdd.map((file) => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+    }))
+    setPreviews((prev) => [...prev, ...newPreviews])
+    // 같은 파일 다시 선택 가능하도록 input 초기화
+    e.target.value = ''
+  }
+
+  function removeImage(index: number) {
+    setPreviews((prev) => {
+      URL.revokeObjectURL(prev[index].previewUrl)
+      return prev.filter((_, i) => i !== index)
+    })
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -58,12 +79,13 @@ export function PostForm({ userId }: { userId: string }) {
 
     const form     = e.currentTarget
     const formData = new FormData(form)
-    const file     = form.querySelector<HTMLInputElement>('#image')?.files?.[0]
 
-    if (file) {
+    // 이미지 업로드
+    const uploadedUrls: string[] = []
+    for (const item of previews) {
       try {
-        const resized  = await resizeImage(file)
-        const fileName = `${userId}/${Date.now()}.jpg`
+        const resized  = await resizeImage(item.file)
+        const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`
 
         const { error: uploadError } = await supabase.storage
           .from('post-images')
@@ -76,7 +98,7 @@ export function PostForm({ userId }: { userId: string }) {
         }
 
         const { data } = supabase.storage.from('post-images').getPublicUrl(fileName)
-        formData.set('image_url', data.publicUrl)
+        uploadedUrls.push(data.publicUrl)
       } catch (err) {
         setError('사진 처리 오류: ' + (err instanceof Error ? err.message : '알 수 없는 오류'))
         setLoading(false)
@@ -84,7 +106,12 @@ export function PostForm({ userId }: { userId: string }) {
       }
     }
 
-    formData.delete('image')
+    // 첫 번째 URL을 image_url(기존 호환), 전체를 image_urls_json으로 전달
+    if (uploadedUrls.length > 0) {
+      formData.set('image_url', uploadedUrls[0])
+    }
+    formData.set('image_urls_json', JSON.stringify(uploadedUrls))
+
     await createPost(formData)
   }
 
@@ -132,26 +159,89 @@ export function PostForm({ userId }: { userId: string }) {
         />
       </div>
 
-      {/* 사진 */}
-      <div className="space-y-2">
-        <label htmlFor="image" className="block text-sm font-medium">
-          사진 <span className="text-gray-400 font-normal">(선택)</span>
-        </label>
-        {preview && (
-          <img
-            src={preview}
-            alt="미리보기"
-            className="w-full max-h-64 object-cover rounded border border-gray-200"
-          />
+      {/* 사진 여러 장 */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="block text-sm font-medium">
+            사진 <span className="text-gray-400 font-normal">(최대 {MAX_IMAGES}장)</span>
+          </label>
+          {previews.length > 0 && (
+            <span className="text-xs text-gray-400">{previews.length}/{MAX_IMAGES}</span>
+          )}
+        </div>
+
+        {/* 미리보기 그리드 */}
+        {previews.length > 0 && (
+          <div className="grid grid-cols-3 gap-2">
+            {previews.map((item, i) => (
+              <div key={item.previewUrl} className="relative aspect-square rounded-xl overflow-hidden bg-gray-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={item.previewUrl} alt={`사진 ${i + 1}`}
+                     className="w-full h-full object-cover" />
+                {i === 0 && (
+                  <span className="absolute bottom-1 left-1 text-[10px] bg-black/50 text-white px-1.5 py-0.5 rounded">
+                    대표
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => removeImage(i)}
+                  className="absolute top-1 right-1 w-5 h-5 bg-black/50 text-white rounded-full
+                             flex items-center justify-center text-[11px] hover:bg-black/70"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+
+            {/* 추가 버튼 (MAX 미만일 때만) */}
+            {previews.length < MAX_IMAGES && (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="aspect-square rounded-xl border-2 border-dashed border-gray-300
+                           flex flex-col items-center justify-center gap-1
+                           text-gray-400 hover:border-charcoal hover:text-charcoal transition-colors"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                <span className="text-[11px]">추가</span>
+              </button>
+            )}
+          </div>
         )}
+
+        {/* 사진 없을 때 업로드 영역 */}
+        {previews.length === 0 && (
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex flex-col items-center justify-center w-full h-36
+                       border-2 border-dashed border-gray-300 rounded-2xl
+                       text-gray-400 hover:border-charcoal hover:bg-gray-50 transition-colors"
+          >
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"
+                 className="mb-2">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+            <p className="text-sm font-medium text-charcoal">사진을 올려주세요</p>
+            <p className="text-xs mt-1">최대 {MAX_IMAGES}장 · 자동으로 최적화돼요</p>
+          </button>
+        )}
+
         <input
-          id="image" name="image" type="file" accept="image/*"
-          onChange={handleFileChange}
-          className="w-full text-sm text-gray-500
-            file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0
-            file:text-sm file:bg-gray-100 file:text-gray-700 file:cursor-pointer"
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleFilesChange}
+          className="hidden"
         />
-        <p className="text-xs text-gray-400">자동으로 1200px / JPEG로 압축돼요</p>
       </div>
 
       <div className="flex gap-3 pt-2">

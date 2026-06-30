@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { toggleLike, createComment, deleteComment, deletePost, updatePost } from '@/app/actions/community'
+import { toggleLike, createComment, deleteComment, deletePost } from '@/app/actions/community'
 
 const BADGE: Record<string, { bg: string; color: string }> = {
   '자랑': { bg: '#FF6BAC', color: '#fff' },
@@ -81,15 +81,26 @@ export default async function PostPage({
             {post.title}
           </h1>
 
-          {/* 사진 */}
-          {post.image_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={post.image_url}
-              alt={post.title}
-              className="block mx-auto max-w-full w-auto h-auto max-h-[80vh] rounded-2xl mb-6"
-            />
-          )}
+          {/* 사진 (여러 장 지원 — image_urls 우선, 없으면 image_url fallback) */}
+          {(() => {
+            const urls: string[] = (post.image_urls && post.image_urls.length > 0)
+              ? post.image_urls
+              : post.image_url ? [post.image_url] : []
+            if (urls.length === 0) return null
+            return (
+              <div className="space-y-3 mb-6">
+                {urls.map((url: string, i: number) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={i}
+                    src={url}
+                    alt={`${post.title} 사진 ${i + 1}`}
+                    className="block w-full h-auto rounded-2xl"
+                  />
+                ))}
+              </div>
+            )
+          })()}
 
           {/* 본문 */}
           <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
