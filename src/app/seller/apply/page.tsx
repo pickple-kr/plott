@@ -14,7 +14,7 @@ export default async function SellerApplyPage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('seller_status, business_number, business_name, owner_name, phone, reject_reason')
+    .select('seller_status, business_number, business_name, owner_name, phone, reject_reason, sales_channel_url')
     .eq('id', user.id)
     .single()
 
@@ -53,6 +53,7 @@ export default async function SellerApplyPage({
           <Row label="상호명"         value={profile?.business_name} />
           <Row label="대표자명"       value={profile?.owner_name} />
           <Row label="연락처"         value={profile?.phone} />
+          <Row label="판매 채널"      value={profile?.sales_channel_url} />
         </div>
       </main>
     )
@@ -100,6 +101,23 @@ export default async function SellerApplyPage({
           placeholder="010-0000-0000"
           defaultValue={profile?.phone ?? ''}
         />
+        <div className="space-y-1">
+          <label htmlFor="sales_channel_url" className="block text-sm font-medium">
+            판매 채널 주소 <span className="text-red-400">*</span>
+          </label>
+          <p className="text-xs text-gray-400 mb-1">
+            심사를 위해 운영 중인 판매 채널 주소를 입력해주세요 (스마트스토어, 인스타그램, 자체 쇼핑몰 등)
+          </p>
+          <input
+            id="sales_channel_url"
+            name="sales_channel_url"
+            type="url"
+            required
+            placeholder="https://smartstore.naver.com/yourstore"
+            defaultValue={profile?.sales_channel_url ?? ''}
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-black"
+          />
+        </div>
 
         <button
           type="submit"

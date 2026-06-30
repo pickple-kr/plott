@@ -40,7 +40,7 @@ export default async function AdminPage() {
   /* ── 신청 목록 (none 제외, 심사중 먼저) ── */
   const { data } = await supabase
     .from('profiles')
-    .select('id, email, seller_status, business_number, business_name, owner_name, phone, reject_reason, created_at')
+    .select('id, email, seller_status, business_number, business_name, owner_name, phone, reject_reason, sales_channel_url, created_at')
     .neq('seller_status', 'none')
 
   const applications = [...(data ?? [])].sort((a, b) => {
@@ -112,6 +112,19 @@ export default async function AdminPage() {
               <Info label="대표자명"       value={app.owner_name} />
               <Info label="연락처"         value={app.phone} />
             </div>
+            {app.sales_channel_url && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-gray-400 shrink-0">판매 채널</span>
+                <a
+                  href={app.sales_channel_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline truncate"
+                >
+                  {app.sales_channel_url}
+                </a>
+              </div>
+            )}
 
             {/* 반려 사유 (있을 때만) */}
             {app.reject_reason && (
