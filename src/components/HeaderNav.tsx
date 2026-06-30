@@ -68,6 +68,15 @@ export function HeaderNav({
         {/* 오른쪽: 아이콘들 (데스크탑) */}
         <div className="hidden md:flex justify-end items-center gap-5">
 
+          {/* 식물 등록 버튼 */}
+          <Link
+            href="/sell"
+            className="inline-flex items-center gap-1 text-[11px] font-bold tracking-[0.12em]
+                       bg-lime text-charcoal px-3.5 py-2 hover:bg-lime/70 transition-colors"
+          >
+            + 식물 등록
+          </Link>
+
           {/* 검색 */}
           <button className="text-charcoal hover:text-gray-400 transition-colors" aria-label="검색">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -198,6 +207,18 @@ export function HeaderNav({
       {/* ── 모바일 드롭다운 ── */}
       {mobileMenu && (
         <nav className="md:hidden border-t border-gray-100">
+
+          {/* 식물 등록 버튼 (모바일) */}
+          <div className="pt-3 pb-1">
+            <Link
+              href="/sell"
+              onClick={() => setMobileMenu(false)}
+              className="flex items-center justify-center gap-1.5 w-full py-3
+                         bg-lime text-charcoal text-sm font-bold tracking-wide"
+            >
+              + 식물 등록
+            </Link>
+          </div>
 
           {/* 메인 메뉴 */}
           <div className="py-2">

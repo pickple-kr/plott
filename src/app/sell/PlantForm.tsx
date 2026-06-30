@@ -119,22 +119,36 @@ export function PlantForm({
 
       {/* 사진 */}
       <div className="space-y-2">
-        <label htmlFor="image" className="block text-sm font-medium">
-          사진 <span className="text-gray-400 font-normal">(선택)</span>
+        <label className="block text-sm font-medium">
+          식물 사진 <span className="text-gray-400 font-normal">(선택)</span>
         </label>
-        {preview && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={preview} alt="미리보기"
-               className="w-full max-h-52 object-cover rounded border border-gray-200" />
-        )}
+        <label
+          htmlFor="image"
+          className="flex flex-col items-center justify-center w-full min-h-[200px]
+                     border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer
+                     hover:border-charcoal hover:bg-gray-50 transition-colors overflow-hidden"
+        >
+          {preview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={preview} alt="미리보기" className="w-full h-full object-cover" />
+          ) : (
+            <div className="flex flex-col items-center gap-3 py-10 text-gray-400 select-none">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+              <p className="text-sm font-semibold text-charcoal">식물 사진을 올려주세요</p>
+              <p className="text-xs text-gray-400">탭하거나 파일을 끌어다 놓으세요</p>
+              <p className="text-[11px] text-gray-300 mt-1">폰 사진도 OK — 자동으로 최적화돼요</p>
+            </div>
+          )}
+        </label>
         <input
           id="image" name="image" type="file" accept="image/*"
           onChange={handleFileChange}
-          className="w-full text-sm text-gray-500
-            file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0
-            file:text-sm file:bg-gray-100 file:text-gray-700 file:cursor-pointer"
+          className="hidden"
         />
-        <p className="text-xs text-gray-400">폰 사진도 OK — 자동으로 1200px / JPEG로 압축돼요</p>
       </div>
 
       {/* 식물 이름 */}

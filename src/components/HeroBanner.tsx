@@ -127,19 +127,6 @@ export function HeroBanner({ banners }: { banners: Banner[] }) {
                 <path d="M2 7h10M8 3l4 4-4 4"/>
               </svg>
             </Link>
-            <Link
-              href="/plants"
-              className="inline-flex items-center gap-2 border border-charcoal/25
-                         text-sm text-charcoal px-5 py-3.5
-                         hover:border-charcoal transition-colors bg-white/50 backdrop-blur-sm"
-            >
-              가이드 보기
-              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"
-                   stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                <circle cx="6.5" cy="6.5" r="5.5"/>
-                <path d="M6.5 5.5v4M6.5 4h.01"/>
-              </svg>
-            </Link>
           </div>
         </div>
       </div>
