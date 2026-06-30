@@ -27,6 +27,14 @@ export async function createPlant(formData: FormData) {
     redirect(`/sell?error=${encodeURIComponent('가격을 올바르게 입력해주세요.')}`)
   }
 
+  const { count: plantCount } = await supabase
+    .from('plants')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+  if ((plantCount ?? 0) >= 30) {
+    redirect(`/sell?error=${encodeURIComponent('최대 30개까지 등록할 수 있어요. 기존 식물을 내린 뒤 다시 시도해주세요.')}`)
+  }
+
   const { error } = await supabase.from('plants').insert({
     name,
     price,

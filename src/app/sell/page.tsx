@@ -56,12 +56,45 @@ export default async function SellPage({
     )
   }
 
-  /* ── 승인된 판매자: 등록 폼 ── */
+  /* ── 승인된 판매자: 현재 등록 개수 확인 ── */
+  const { count: plantCount } = await supabase
+    .from('plants')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+
+  const currentCount = plantCount ?? 0
+  const MAX_PLANTS = 30
   const { error } = await searchParams
+
+  /* ── 30개 초과: 등록 불가 안내 ── */
+  if (currentCount >= MAX_PLANTS) {
+    return (
+      <main className="max-w-lg mx-auto px-6 py-16 text-center space-y-4">
+        <p className="text-xl font-semibold">등록 한도에 도달했어요</p>
+        <p className="text-sm text-gray-500">
+          최대 {MAX_PLANTS}개까지 등록할 수 있어요. (현재 {currentCount}개)
+        </p>
+        <p className="text-sm text-gray-400">
+          기존 식물을 내리면 다시 등록할 수 있어요.
+        </p>
+        <Link
+          href="/my"
+          className="inline-block bg-black text-white text-sm px-5 py-2.5 rounded"
+        >
+          내 식물 관리하러 가기
+        </Link>
+      </main>
+    )
+  }
 
   return (
     <main className="max-w-lg mx-auto px-6 py-12">
-      <h1 className="text-2xl font-semibold mb-6">식물 등록</h1>
+      <div className="flex items-baseline justify-between mb-6">
+        <h1 className="text-2xl font-semibold">식물 등록</h1>
+        <span className="text-sm text-gray-400">
+          <span className="font-semibold text-charcoal">{currentCount}</span> / {MAX_PLANTS}
+        </span>
+      </div>
       {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
       <PlantForm userId={user.id} action={createPlant} />
     </main>
