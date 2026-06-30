@@ -15,7 +15,7 @@ export default async function Home() {
   const [{ data: plants }, { data: banners }, { data: rawCollections }] = await Promise.all([
     supabase
       .from('plants')
-      .select('id, name, price, category, image_url, purchase_url, description')
+      .select('id, name, price, category, image_url, purchase_url, description, created_at')
       .order('created_at', { ascending: false })
       .limit(16),
     supabase
@@ -99,7 +99,7 @@ export default async function Home() {
             <div>
               <div className="relative w-fit mb-2">
                 <h2 className="font-black text-4xl sm:text-5xl text-charcoal uppercase tracking-tight">
-                  PLOTT&apos;S PICK!
+                  새로 올라온 식물
                 </h2>
                 <svg
                   className="absolute left-0 w-full overflow-visible pointer-events-none"
@@ -108,11 +108,11 @@ export default async function Home() {
                   preserveAspectRatio="none" aria-hidden="true"
                 >
                   <path d="M2 7 C 45 2, 92 9, 135 5 C 168 2, 192 8, 198 5"
-                        fill="none" stroke="#FF6BAC" strokeWidth="6"
+                        fill="none" stroke="#D4F034" strokeWidth="6"
                         strokeLinecap="round" opacity="0.85"/>
                 </svg>
               </div>
-              <p className="text-sm text-gray-400">지금 가장 사랑받는 식물들</p>
+              <p className="text-sm text-gray-400">방금 입고된 식물들</p>
             </div>
             <div className="hidden sm:flex items-center gap-3">
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none"

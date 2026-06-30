@@ -12,6 +12,7 @@ export type PlantCardData = {
   image_url: string | null
   purchase_url: string
   description?: string | null
+  created_at?: string | null
 }
 
 export function PlantCard({
@@ -30,6 +31,9 @@ export function PlantCard({
   className?: string
 }) {
   const bgColor = CARD_PASTELS[index % CARD_PASTELS.length]
+  const isNew = showBadge && plant.created_at
+    ? Date.now() - new Date(plant.created_at).getTime() < 7 * 24 * 60 * 60 * 1000
+    : false
 
   return (
     <div
@@ -39,15 +43,7 @@ export function PlantCard({
       {/* 이미지 → 상세 페이지 링크 */}
       <Link href={`/plants/${plant.id}`} className="block">
         <div className="relative aspect-square">
-          {showBadge && index === 0 && (
-            <span
-              className="absolute top-3 left-3 z-10 text-white text-[10px] font-black px-2.5 py-1 tracking-wider"
-              style={{ backgroundColor: '#FF4FA3', transform: 'rotate(-2deg)' }}
-            >
-              BEST
-            </span>
-          )}
-          {showBadge && (index === 1 || index === 2) && (
+          {isNew && (
             <span
               className="absolute top-3 left-3 z-10 text-charcoal text-[10px] font-black px-2.5 py-1 tracking-wider"
               style={{ backgroundColor: '#D4F034', transform: 'rotate(2deg)' }}

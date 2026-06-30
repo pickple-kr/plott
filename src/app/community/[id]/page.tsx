@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { toggleLike, createComment, deleteComment, deletePost } from '@/app/actions/community'
+import { toggleLike, createComment, deleteComment, deletePost, updatePost } from '@/app/actions/community'
 
 const BADGE: Record<string, { bg: string; color: string }> = {
   '자랑': { bg: '#FF6BAC', color: '#fff' },
@@ -31,10 +31,11 @@ export default async function PostPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: post }, { data: comments }, { data: likes }] = await Promise.all([
+  const [{ data: post }, { data: comments }, { data: likes }, { data: profile }] = await Promise.all([
     supabase.from('posts').select('*').eq('id', id).single(),
     supabase.from('comments').select('id, content, created_at, user_id').eq('post_id', id).order('created_at'),
     supabase.from('likes').select('user_id').eq('post_id', id),
+    user ? supabase.from('profiles').select('is_admin').eq('id', user.id).single() : Promise.resolve({ data: null }),
   ])
 
   if (!post) notFound()
@@ -42,6 +43,8 @@ export default async function PostPage({
   const likeCount    = likes?.length ?? 0
   const userHasLiked = user ? (likes ?? []).some((l) => l.user_id === user.id) : false
   const isOwnPost    = user?.id === post.user_id
+  const isAdmin      = profile?.is_admin ?? false
+  const canModify    = isOwnPost || isAdmin
   const badge        = BADGE[post.category] ?? { bg: '#E5E7EB', color: '#6B7280' }
 
   return (
@@ -116,13 +119,21 @@ export default async function PostPage({
             </Link>
           )}
 
-          {isOwnPost && (
-            <form action={deletePost} className="ml-auto">
-              <input type="hidden" name="post_id" value={post.id} />
-              <button type="submit" className="text-xs text-gray-400 hover:text-red-400 transition-colors">
-                글 삭제
-              </button>
-            </form>
+          {canModify && (
+            <div className="ml-auto flex items-center gap-3">
+              <Link
+                href={`/community/edit/${post.id}`}
+                className="text-xs text-gray-400 hover:text-charcoal transition-colors"
+              >
+                수정
+              </Link>
+              <form action={deletePost}>
+                <input type="hidden" name="post_id" value={post.id} />
+                <button type="submit" className="text-xs text-gray-400 hover:text-red-400 transition-colors">
+                  삭제
+                </button>
+              </form>
+            </div>
           )}
         </div>
 
@@ -147,7 +158,7 @@ export default async function PostPage({
                   </p>
                   <p className="text-[11px] text-gray-300 mt-1.5">{timeAgo(comment.created_at)}</p>
                 </div>
-                {user?.id === comment.user_id && (
+                {(user?.id === comment.user_id || isAdmin) && (
                   <form action={deleteComment} className="flex-shrink-0 pt-2">
                     <input type="hidden" name="comment_id" value={comment.id} />
                     <input type="hidden" name="post_id"    value={post.id} />
